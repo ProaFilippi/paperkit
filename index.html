@@ -1,0 +1,881 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="Paper Kit — alternative design kit" subtitle="Quiet register: floating white paper, hairlines, teal highlighter, sans-only" -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Superiora · Paper Kit — alternative design kit</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="paper-kit.css" />
+<style>
+  :root {
+    --pk-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+    --pk-body:    "Inter", "Helvetica Neue", system-ui, sans-serif;
+    --pk-mono:    var(--font-mono);
+    --pk-ink:     #0E0E0E;
+    --pk-mute:    #6E6E73;
+    --pk-hair:    rgba(14,14,14,0.10);
+    --pk-desk:    #FAFAF7;
+  }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background-color: #FFFFFF;
+    background-image: radial-gradient(circle, rgba(14,14,14,0.14) 1px, transparent 1.4px);
+    background-size: 22px 22px;
+    background-position: 0 0;
+    color: var(--pk-ink);
+    font-family: var(--pk-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  .shell { max-width: 1240px; margin: 0 auto; padding: 56px 40px 96px; }
+
+  /* ============= Masthead ============= */
+  .masthead {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 48px;
+    align-items: end;
+    padding-bottom: 28px;
+    margin-bottom: 56px;
+    border-bottom: 1px solid var(--pk-hair);
+  }
+  .masthead .stamp {
+    font-family: var(--pk-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pk-ink);
+  }
+  .masthead h1 {
+    font-family: var(--pk-display);
+    font-size: 88px;
+    font-weight: 500;
+    letter-spacing: -0.025em;
+    line-height: 0.92;
+    margin: 14px 0 0;
+  }
+  .masthead h1 .hl {
+    background-image: var(--fp-hl-strong);
+    background-repeat: no-repeat;
+    background-size: 100% 65%;
+    background-position: 0 70%;
+    padding: 0 6px;
+  }
+  .masthead .deck {
+    font-size: 17px; line-height: 1.55;
+    color: #2D2D2D;
+    max-width: 52ch;
+    margin: 0 0 6px;
+  }
+  .masthead .meta {
+    display: flex; gap: 20px; align-items: center;
+    font-family: var(--pk-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--pk-mute);
+    margin-top: 18px;
+  }
+  .masthead .meta strong { color: var(--pk-ink); font-weight: 500; }
+  .masthead .meta .sep { width: 14px; height: 1px; background: var(--pk-hair); }
+
+  /* ============= Section ============= */
+  .section { margin-top: 88px; }
+  .section-head {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 48px;
+    align-items: baseline;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--pk-hair);
+    margin-bottom: 28px;
+  }
+  .section-head .num {
+    font-family: var(--pk-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pk-mute);
+    margin-bottom: 8px;
+  }
+  .section-head h2 {
+    font-family: var(--pk-display);
+    font-size: 40px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin: 0;
+  }
+  .section-head p {
+    font-size: 15.5px; line-height: 1.55;
+    color: #2D2D2D;
+    margin: 0;
+    max-width: 48ch;
+  }
+
+  /* ============= Grid ============= */
+  .grid { display: grid; gap: 24px; }
+  .grid.cols-2 { grid-template-columns: 1fr 1fr; }
+  .grid.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+  .grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+  /* ============= Paper card (the canonical floating paper) ============= */
+  .paper {
+    background: #FFFFFF;
+    border: 0;
+    box-shadow:
+      0 1px 2px rgba(14,14,14,0.04),
+      0 8px 20px -6px rgba(14,14,14,0.08),
+      0 24px 40px -18px rgba(14,14,14,0.12);
+    padding: 28px 32px;
+  }
+  .paper.lifted {
+    box-shadow:
+      0 1px 2px rgba(14,14,14,0.04),
+      0 12px 26px -8px rgba(14,14,14,0.10),
+      0 38px 60px -22px rgba(14,14,14,0.16);
+  }
+  .paper.compact { padding: 20px 22px; }
+  .paper.tilt-l { transform: rotate(-0.35deg); }
+  .paper.tilt-r { transform: rotate(0.35deg); }
+
+  .hair { height: 0; border: 0; border-top: 1px solid var(--pk-hair); margin: 0; }
+
+  /* ============= Stamps / labels ============= */
+  .stamp {
+    font-family: var(--pk-mono);
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--pk-ink);
+    font-weight: 500;
+  }
+  .stamp.l { font-size: 10.5px; }
+  .stamp.mute { color: var(--pk-mute); }
+
+  .label {
+    font-family: var(--pk-display);
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .disp {
+    font-family: var(--pk-display);
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    line-height: 0.94;
+  }
+
+  /* highlighter swipe (in-flow + standalone) */
+  .hl {
+    background-image: var(--fp-hl);
+    background-repeat: no-repeat;
+    background-size: 100% 65%;
+    background-position: 0 75%;
+    padding: 0 4px;
+  }
+  .hl.strong {
+    background-image: var(--fp-hl-strong);
+    background-size: 100% 70%;
+    background-position: 0 70%;
+  }
+  .swipe {
+    height: 22px;
+    background-image: var(--fp-hl-strong);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+  }
+  .swipe.thick { height: 34px; }
+
+  /* dot + agent name */
+  .dot {
+    display: inline-block;
+    width: 9px; height: 9px;
+    border-radius: 50%;
+    background: var(--marker-orange);
+    vertical-align: 1px;
+  }
+  .agent {
+    font-family: var(--pk-display);
+    font-size: 17px;
+    font-weight: 600;
+    background-image: var(--fp-hl);
+    background-repeat: no-repeat;
+    background-size: 100% 60%;
+    background-position: 0 65%;
+    padding: 0 6px;
+  }
+
+  /* tag */
+  .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 9px 4px 8px;
+    border: 1.25px solid var(--pk-ink);
+    font-family: var(--pk-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    line-height: 1;
+    background: #FFFFFF;
+  }
+  .tag.filled { background: var(--pk-ink); color: #FFFFFF; }
+
+  /* button */
+  .btn {
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 9px 16px;
+    font-family: var(--pk-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    border: 1.25px solid var(--pk-ink);
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--pk-ink);
+    background: #FFFFFF;
+  }
+  .btn.primary { background: var(--pk-ink); color: #FFFFFF; }
+
+  /* check */
+  .check {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 1.25px solid var(--pk-ink);
+    margin-right: 10px;
+    vertical-align: -2px;
+    background: #FFFFFF;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .check.done { background: rgba(74,133,128,0.22); }
+  .check.done::after {
+    content: ""; position: absolute; left: 2px; top: 5px;
+    width: 10px; height: 5px;
+    border-left: 2px solid var(--pk-ink);
+    border-bottom: 2px solid var(--pk-ink);
+    transform: rotate(-45deg);
+    transform-origin: 0 100%;
+  }
+
+  /* swatches */
+  .swatch {
+    height: 80px;
+    border: 0;
+    display: flex; flex-direction: column; justify-content: flex-end;
+    padding: 12px 14px;
+    color: var(--pk-ink);
+  }
+  .swatch .v { font-family: var(--pk-mono); font-size: 10.5px; letter-spacing: 0.06em; }
+
+  /* utility */
+  .row { display: flex; align-items: center; gap: 12px; }
+  .col { display: flex; flex-direction: column; gap: 12px; }
+  .mute { color: var(--pk-mute); }
+
+  /* footer */
+  .footer {
+    margin-top: 88px;
+    padding-top: 18px;
+    border-top: 1px solid var(--pk-hair);
+    display: flex; justify-content: space-between; align-items: baseline;
+    color: var(--pk-mute);
+    font-family: var(--pk-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <!-- ============================================================
+       MASTHEAD
+       ============================================================ -->
+  <header class="masthead">
+    <div>
+      <span class="stamp">Superiora · alt kit · v 0.1 · 15 may 2026</span>
+      <h1 class="disp">
+        Paper Kit —<br />
+        the notebook,<br />
+        <span class="hl">sharpened.</span>
+      </h1>
+    </div>
+    <div>
+      <p class="deck">
+        An alternative kit for Superiora. Same atoms — paper, ink, teal —
+        in a quieter register. Floating white paper on an off-white desk,
+        hairline structure where structure is needed, teal only ever as a
+        highlighter swipe. Sans-only type. No emoji. No flourishes.
+      </p>
+      <div class="meta">
+        <span><strong>Status</strong> Draft</span>
+        <span class="sep"></span>
+        <span><strong>Parent</strong> Superiora</span>
+        <span class="sep"></span>
+        <span><strong>Maintainer</strong> Athena</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- ============================================================
+       01 · WHAT CHANGES
+       ============================================================ -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <div class="num">01 · diff from parent</div>
+        <h2>Eight atomic changes.</h2>
+      </div>
+      <p>
+        Designed to land in a single migration pass. Every change is
+        small, surgical, and applicable across all pages without
+        restructuring layouts or rewriting components.
+      </p>
+    </div>
+
+    <div class="grid cols-4">
+      <div class="paper compact">
+        <div class="stamp mute">01</div>
+        <div class="disp" style="font-size:22px; margin-top:6px">Background.</div>
+        <hr class="hair" style="margin:10px 0" />
+        <p style="font-size:14px; line-height:1.55; margin:0">
+          Page becomes <code style="font-family:var(--pk-mono); font-size:12px">#FAFAF7</code>
+          desk. Containers become pure white.
+        </p>
+      </div>
+      <div class="paper compact">
+        <div class="stamp mute">02</div>
+        <div class="disp" style="font-size:22px; margin-top:6px">Cards float.</div>
+        <hr class="hair" style="margin:10px 0" />
+        <p style="font-size:14px; line-height:1.55; margin:0">
+          Drop borders, drop radius. Replace shadow with the paper-float stack.
+        </p>
+      </div>
+      <div class="paper compact">
+        <div class="stamp mute">03</div>
+        <div class="disp" style="font-size:22px; margin-top:6px">Hairlines.</div>
+        <hr class="hair" style="margin:10px 0" />
+        <p style="font-size:14px; line-height:1.55; margin:0">
+          Every divider becomes <code style="font-family:var(--pk-mono); font-size:12px">1px ink 10%</code>.
+          Drop the rest.
+        </p>
+      </div>
+      <div class="paper compact">
+        <div class="stamp mute">04</div>
+        <div class="disp" style="font-size:22px; margin-top:6px">Sans only.</div>
+        <hr class="hair" style="margin:10px 0" />
+        <p style="font-size:14px; line-height:1.55; margin:0">
+          Space Grotesk display · Inter body · JetBrains Mono stamps. Serif removed.
+        </p>
+      </div>
+
+      <div class="paper compact">
+        <div class="stamp mute">05</div>
+        <div class="disp" style="font-size:22px; margin-top:6px">Two greys.</div>
+        <hr class="hair" style="margin:10px 0" />
+        <p style="font-size:14px; line-height:1.55; margin:0">
+          Ink <code style="font-family:var(--pk-mono); font-size:12px">#0E0E0E</code>,
+          mute <code style="font-family:var(--pk-mono); font-size:12px">#6E6E73</code>. No others.
+        </p>
+      </div>
+      <div class="paper compact">
+        <div class="stamp mute">06</div>
+        <div class="disp" style="font-size:22px; margin-top:6px">Teal swipes.</div>
+        <hr class="hair" style="margin:10px 0" />
+        <p style="font-size:14px; line-height:1.55; margin:0">
+          Teal is <span class="hl">only ever</span> a highlighter gradient.
+          Never a fill or a border.
+        </p>
+      </div>
+      <div class="paper compact">
+        <div class="stamp mute">07</div>
+        <div class="disp" style="font-size:22px; margin-top:6px">Hard buttons.</div>
+        <hr class="hair" style="margin:10px 0" />
+        <p style="font-size:14px; line-height:1.55; margin:0">
+          Solid black or thin-bordered white. Mono caps label. No other variants.
+        </p>
+      </div>
+      <div class="paper compact">
+        <div class="stamp mute">08</div>
+        <div class="disp" style="font-size:22px; margin-top:6px">No emoji.</div>
+        <hr class="hair" style="margin:10px 0" />
+        <p style="font-size:14px; line-height:1.55; margin:0">
+          The teal dot does any work emoji would do elsewhere. Functional icons stay.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       02 · FOUNDATIONS
+       ============================================================ -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <div class="num">02 · foundations</div>
+        <h2>Materials &amp; rules.</h2>
+      </div>
+      <p>
+        The fewest possible atoms. Two surfaces, two greys, one accent,
+        one hairline, one shadow stack, one type system.
+      </p>
+    </div>
+
+    <!-- surfaces + ink -->
+    <div class="grid cols-2" style="margin-bottom: 24px">
+      <div>
+        <div class="stamp mute" style="margin-bottom: 10px">Surfaces</div>
+        <div class="grid cols-2">
+          <div class="swatch" style="background:#FAFAF7; outline: 1px solid var(--pk-hair); outline-offset: -1px">
+            <div class="stamp">Desk</div>
+            <div class="v">#FAFAF7 · body bg</div>
+          </div>
+          <div class="swatch paper compact" style="height: 80px; padding: 12px 14px">
+            <div class="stamp">Paper</div>
+            <div class="v">#FFFFFF · floating</div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="stamp mute" style="margin-bottom: 10px">Ink &amp; mute</div>
+        <div class="grid cols-2">
+          <div class="swatch" style="background:#0E0E0E; color:#fff">
+            <div class="stamp" style="color:#fff">Ink</div>
+            <div class="v" style="color:#fff">#0E0E0E · primary</div>
+          </div>
+          <div class="swatch" style="background:#6E6E73; color:#fff">
+            <div class="stamp" style="color:#fff">Mute</div>
+            <div class="v" style="color:#fff">#6E6E73 · secondary</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- highlighter + hair -->
+    <div class="grid cols-2" style="margin-bottom: 24px">
+      <div class="paper">
+        <div class="stamp mute">Accent · teal highlighter</div>
+        <div class="col" style="gap: 14px; margin-top: 14px">
+          <div class="swipe"></div>
+          <div class="swipe thick" style="background-image: var(--fp-hl)"></div>
+          <p style="font-size:16px; line-height:1.6; margin:4px 0 0">
+            In flow: <span class="hl">fall enrollment</span> is up 4.2 points,
+            with <span class="hl strong">two key shifts</span> in the picture.
+          </p>
+          <div class="stamp mute" style="margin-top: 6px">
+            Linear gradient · teal → transparent · never a flat fill
+          </div>
+        </div>
+      </div>
+      <div class="paper">
+        <div class="stamp mute">Structure · the single hairline</div>
+        <div style="margin-top: 14px">
+          <div style="font-size:15px; line-height:1.55; padding-bottom: 14px">
+            Use the hairline only when a section actually needs structure.
+          </div>
+          <hr class="hair" />
+          <div style="font-size:15px; line-height:1.55; padding: 14px 0">
+            <code style="font-family:var(--pk-mono); font-size:12px">1px solid rgba(14,14,14,0.10)</code>
+            — nothing else.
+          </div>
+          <hr class="hair" />
+          <div style="font-size:15px; line-height:1.55; padding-top: 14px">
+            Whitespace does the rest of the work.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- type -->
+    <div class="paper">
+      <div class="stamp mute">Type · sans only</div>
+      <div class="grid cols-3" style="margin-top: 14px; align-items: end">
+        <div>
+          <div class="stamp mute">Display</div>
+          <div class="disp" style="font-size: 48px; margin-top: 6px">Space Grotesk</div>
+          <div class="stamp mute" style="margin-top: 6px">500 · -0.02 em · 0.94 lh</div>
+        </div>
+        <div>
+          <div class="stamp mute">Body</div>
+          <div style="font-size: 28px; margin-top: 6px; line-height: 1.2">Inter — the body voice</div>
+          <div class="stamp mute" style="margin-top: 6px">400 · 16/14 px · 1.55 lh</div>
+        </div>
+        <div>
+          <div class="stamp mute">Stamp</div>
+          <div class="stamp l" style="margin-top: 10px; display: block">Jetbrains mono · stamp · caps</div>
+          <div class="stamp mute" style="margin-top: 10px">500 · 9.5/11 px · 0.14–0.16 em</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       03 · COMPONENTS
+       ============================================================ -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <div class="num">03 · components</div>
+        <h2>The kit, re-skinned.</h2>
+      </div>
+      <p>
+        Every component you have in Superiora — restated for the
+        quiet register. Same names, same APIs, smaller surface.
+      </p>
+    </div>
+
+    <div class="grid cols-3">
+
+      <!-- KPI -->
+      <div>
+        <div class="stamp mute" style="margin-bottom: 10px">KPI · numbers first</div>
+        <div class="paper">
+          <div class="stamp">Yield · undergraduate</div>
+          <div class="disp" style="font-size: 56px; margin-top: 10px; font-variant-numeric: tabular-nums">
+            38<span style="font-size: 30px">.4%</span>
+          </div>
+          <div style="font-family: var(--pk-mono); font-size: 11px; letter-spacing: 0.06em; margin-top: 8px">
+            <span class="hl">+4.2 pp YoY</span> · vs peer 32.1%
+          </div>
+          <hr class="hair" style="margin-top: 12px" />
+          <div class="row" style="justify-content: space-between; margin-top: 10px">
+            <span class="stamp mute">Coverage · 96%</span>
+            <span class="stamp mute">Conf · high</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Checklist -->
+      <div>
+        <div class="stamp mute" style="margin-bottom: 10px">Checklist</div>
+        <div class="paper">
+          <div class="label">Open · this week</div>
+          <hr class="hair" style="margin: 10px 0 6px" />
+          <div style="display:flex; flex-direction: column">
+            <label style="display:flex; align-items:center; padding: 7px 0; font-size: 14.5px; color: var(--pk-mute); text-decoration: line-through">
+              <span class="check done"></span>Investor financials
+            </label>
+            <label style="display:flex; align-items:center; padding: 7px 0; font-size: 14.5px; color: var(--pk-mute); text-decoration: line-through; border-top: 1px solid var(--pk-hair)">
+              <span class="check done"></span>Tied out to G/L
+            </label>
+            <label style="display:flex; align-items:center; padding: 7px 0; font-size: 14.5px; border-top: 1px solid var(--pk-hair)">
+              <span class="check"></span>Month conditions
+            </label>
+            <label style="display:flex; align-items:center; padding: 7px 0; font-size: 14.5px; border-top: 1px solid var(--pk-hair)">
+              <span class="check"></span>Run T/B
+            </label>
+            <label style="display:flex; align-items:center; padding: 7px 0; font-size: 14.5px; border-top: 1px solid var(--pk-hair)">
+              <span class="check"></span>Adjustment transactions
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Agent note -->
+      <div>
+        <div class="stamp mute" style="margin-bottom: 10px">Agent line</div>
+        <div class="paper">
+          <div class="row" style="justify-content: space-between">
+            <span class="agent">Athena</span>
+            <span class="stamp mute">Note · 09:14</span>
+          </div>
+          <hr class="hair" style="margin: 12px 0" />
+          <p style="font-size: 15px; line-height: 1.6; margin: 0">
+            Yield is <span class="hl">up 4.2 points</span>, concentrated in
+            international STEM. I'd open a section on FY27 sensitivity
+            before Friday.
+          </p>
+          <div class="row" style="gap: 8px; flex-wrap: wrap; margin-top: 14px">
+            <span class="tag">Source · SIS</span>
+            <span class="tag">Peer band</span>
+            <span class="tag">Coverage 96%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Buttons -->
+      <div>
+        <div class="stamp mute" style="margin-bottom: 10px">Buttons</div>
+        <div class="paper">
+          <div class="row" style="gap: 10px; flex-wrap: wrap">
+            <button class="btn primary">Sketch a plan</button>
+            <button class="btn">Open library</button>
+          </div>
+          <hr class="hair" style="margin: 16px 0" />
+          <div class="row" style="gap: 10px; flex-wrap: wrap">
+            <span class="tag filled">Active</span>
+            <span class="tag">Q4 · sage</span>
+            <span class="tag">Cohort 2026</span>
+          </div>
+          <hr class="hair" style="margin: 16px 0" />
+          <div class="row" style="gap: 12px; font-size: 14px">
+            <span class="dot"></span>
+            <span>Athena is online · drafting</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form-table strip -->
+      <div>
+        <div class="stamp mute" style="margin-bottom: 10px">Table · hairline rules only</div>
+        <div class="paper compact" style="padding: 0; overflow: hidden">
+          <div style="display:grid; grid-template-columns: 1.4fr 1fr 1fr; border-bottom: 1px solid var(--pk-hair)">
+            <div style="padding: 10px 14px"><span class="stamp mute">Section</span></div>
+            <div style="padding: 10px 14px; border-left: 1px solid var(--pk-hair)"><span class="stamp mute">Due</span></div>
+            <div style="padding: 10px 14px; border-left: 1px solid var(--pk-hair)"><span class="stamp mute">Owner</span></div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1.4fr 1fr 1fr">
+            <div style="padding: 12px 14px; font-size: 14.5px">Q3 cohort report</div>
+            <div style="padding: 12px 14px; border-left: 1px solid var(--pk-hair); font-family: var(--pk-mono); font-size: 12.5px">Wed · 10:30</div>
+            <div style="padding: 12px 14px; border-left: 1px solid var(--pk-hair); font-family: var(--pk-mono); font-size: 12.5px">Cabinet</div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1.4fr 1fr 1fr; border-top: 1px solid var(--pk-hair)">
+            <div style="padding: 12px 14px; font-size: 14.5px">Housing capacity scan</div>
+            <div style="padding: 12px 14px; border-left: 1px solid var(--pk-hair); font-family: var(--pk-mono); font-size: 12.5px">Fri · EOD</div>
+            <div style="padding: 12px 14px; border-left: 1px solid var(--pk-hair); font-family: var(--pk-mono); font-size: 12.5px">K. Reyes</div>
+          </div>
+          <div style="display:grid; grid-template-columns: 1.4fr 1fr 1fr; border-top: 1px solid var(--pk-hair)">
+            <div style="padding: 12px 14px; font-size: 14.5px">FY27 sensitivity</div>
+            <div style="padding: 12px 14px; border-left: 1px solid var(--pk-hair); font-family: var(--pk-mono); font-size: 12.5px">Wk 06</div>
+            <div style="padding: 12px 14px; border-left: 1px solid var(--pk-hair); font-family: var(--pk-mono); font-size: 12.5px">Athena</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Calendar block -->
+      <div>
+        <div class="stamp mute" style="margin-bottom: 10px">Calendar · highlighter on the date</div>
+        <div class="paper">
+          <div class="row" style="justify-content: space-between; align-items: flex-start">
+            <div class="disp" style="font-size: 56px; line-height: 0.85">NOV</div>
+            <span class="stamp mute">2026 · week 04</span>
+          </div>
+          <hr class="hair" style="margin: 8px 0 10px" />
+          <div id="cal" style="display:grid; grid-template-columns: repeat(7, 1fr); gap: 2px; font-family: var(--pk-mono); font-size: 10.5px; text-align: center"></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============================================================
+       04 · APPLIED
+       ============================================================ -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <div class="num">04 · applied</div>
+        <h2>What it looks like in flow.</h2>
+      </div>
+      <p>
+        Two surfaces, both real product pages: an executive briefing
+        and a project view with Athena.
+      </p>
+    </div>
+
+    <div class="row" style="gap: 14px; margin-bottom: 24px">
+      <a class="btn primary" href="../Field Planner.html">Open full canvas →</a>
+      <a class="btn" href="../Field Planner.html">Field Planner exploration</a>
+    </div>
+
+    <!-- briefing preview -->
+    <div class="paper lifted" style="padding: 40px 48px; margin-bottom: 32px">
+      <div class="row" style="justify-content: space-between; align-items: baseline">
+        <span class="stamp l">Fall picture · executive read</span>
+        <div class="row" style="gap: 18px">
+          <span class="stamp mute">Drawn by · Athena</span>
+          <span class="stamp mute">09:14</span>
+          <span class="stamp mute">Coverage · 96%</span>
+        </div>
+      </div>
+      <div class="disp" style="font-size: 76px; line-height: 0.92; margin: 16px 0 12px">
+        Yield came in <span class="hl strong">ahead of plan.</span>
+      </div>
+      <p style="font-size: 17px; line-height: 1.55; color: #2D2D2D; max-width: 62ch; margin: 0">
+        The gain is concentrated in international STEM — good news, but it
+        raises a concentration question for FY27. Two operational items
+        want attention this week. <span class="agent">Athena</span> has the read.
+      </p>
+
+      <hr class="hair" style="margin: 28px 0 0" />
+
+      <div class="grid cols-4" style="gap: 0; margin: 0 -16px">
+        <div style="padding: 22px 16px 4px">
+          <div class="stamp">Yield · UG</div>
+          <div class="disp" style="font-size: 44px; margin-top: 8px; font-variant-numeric: tabular-nums">38.4%</div>
+          <div style="font-family: var(--pk-mono); font-size: 11px; margin-top: 8px"><span class="hl">+4.2 pp YoY</span></div>
+        </div>
+        <div style="padding: 22px 16px 4px; border-left: 1px solid var(--pk-hair)">
+          <div class="stamp">Apps · STEM intl.</div>
+          <div class="disp" style="font-size: 44px; margin-top: 8px; font-variant-numeric: tabular-nums">1,284</div>
+          <div style="font-family: var(--pk-mono); font-size: 11px; margin-top: 8px; color: #2D2D2D">+11.0% vs cohort</div>
+        </div>
+        <div style="padding: 22px 16px 4px; border-left: 1px solid var(--pk-hair)">
+          <div class="stamp">Housing · spring</div>
+          <div class="disp" style="font-size: 44px; margin-top: 8px; font-variant-numeric: tabular-nums">94%</div>
+          <div style="font-family: var(--pk-mono); font-size: 11px; margin-top: 8px; color: #2D2D2D">+1.8 pp vs target</div>
+        </div>
+        <div style="padding: 22px 16px 4px; border-left: 1px solid var(--pk-hair)">
+          <div class="stamp">FY26 audit window</div>
+          <div class="disp" style="font-size: 44px; margin-top: 8px; font-variant-numeric: tabular-nums">42 d</div>
+          <div style="font-family: var(--pk-mono); font-size: 11px; margin-top: 8px; color: #2D2D2D">−6 d vs FY25</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- project preview row -->
+    <div class="grid cols-2">
+      <div class="paper" style="padding: 32px 36px">
+        <span class="stamp mute">Conversation · drafted today</span>
+        <div class="disp" style="font-size: 38px; margin: 12px 0 6px">
+          <span class="hl strong">Open</span> a section on<br />housing capacity?
+        </div>
+        <hr class="hair" style="margin: 18px 0" />
+        <div class="row" style="align-items: flex-start; gap: 14px">
+          <span class="dot" style="margin-top: 9px; width: 14px; height: 14px"></span>
+          <div>
+            <span class="agent">Athena</span>
+            <p style="font-size: 15.5px; line-height: 1.6; margin: 10px 0 0">
+              Yes — and I'd pull the lease appendix forward.
+              <span class="hl">Spring is at 94%</span>, comfortable now, but the
+              band tightens after week six.
+            </p>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="paper tilt-r compact">
+          <div class="row" style="justify-content: space-between; align-items: baseline">
+            <span class="label">Tasks · 6 of 12</span>
+            <span class="stamp mute">Today</span>
+          </div>
+          <div style="margin-top: 10px">
+            <label style="display:flex; align-items:center; padding: 7px 0; font-size: 14px; color: var(--pk-mute); text-decoration: line-through">
+              <span class="check done"></span>Pull lease appendix
+            </label>
+            <label style="display:flex; align-items:center; padding: 7px 0; font-size: 14px; border-top: 1px solid var(--pk-hair); color: var(--pk-mute); text-decoration: line-through">
+              <span class="check done"></span>Run housing scenario B
+            </label>
+            <label style="display:flex; align-items:center; padding: 7px 0; font-size: 14px; border-top: 1px solid var(--pk-hair)">
+              <span class="check"></span>Cabinet pre-read draft
+            </label>
+            <label style="display:flex; align-items:center; padding: 7px 0; font-size: 14px; border-top: 1px solid var(--pk-hair)">
+              <span class="check"></span>Send to controller
+            </label>
+          </div>
+        </div>
+        <div class="paper tilt-l compact">
+          <div class="row" style="justify-content: space-between; align-items: baseline">
+            <span class="label">Artifacts · 04</span>
+            <span class="stamp mute">Drawn by Athena</span>
+          </div>
+          <hr class="hair" style="margin-top: 10px" />
+          <div style="display:grid; grid-template-columns: 26px 1fr; row-gap: 0">
+            <div style="padding: 10px 0"><span class="stamp mute">01</span></div>
+            <div style="padding: 10px 0">
+              <div style="font-size: 14px">Spring housing — capacity scan</div>
+              <div class="stamp mute" style="margin-top: 4px">Chart · 2 pages</div>
+            </div>
+            <div style="padding: 10px 0; border-top: 1px solid var(--pk-hair)"><span class="stamp mute">02</span></div>
+            <div style="padding: 10px 0; border-top: 1px solid var(--pk-hair)">
+              <div style="font-size: 14px">Lease appendix — extract</div>
+              <div class="stamp mute" style="margin-top: 4px">PDF · 14 pages</div>
+            </div>
+            <div style="padding: 10px 0; border-top: 1px solid var(--pk-hair)"><span class="stamp mute">03</span></div>
+            <div style="padding: 10px 0; border-top: 1px solid var(--pk-hair)">
+              <div style="font-size: 14px">FY27 sensitivity — three runs</div>
+              <div class="stamp mute" style="margin-top: 4px">Model · live</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       05 · MIGRATION
+       ============================================================ -->
+  <section class="section">
+    <div class="section-head">
+      <div>
+        <div class="num">05 · migration</div>
+        <h2>Hand this to your engineer.</h2>
+      </div>
+      <p>
+        One prompt. Eight changes. No structural edits. Drops into
+        any existing Superiora page and produces the new feel
+        in a single pass.
+      </p>
+    </div>
+
+    <div class="paper" style="padding: 32px 36px">
+      <span class="stamp mute">Prompt · paste into your coding agent</span>
+      <pre style="font-family: var(--pk-mono); font-size: 12.5px; line-height: 1.65; white-space: pre-wrap; margin: 14px 0 0; color: #2D2D2D">
+1.  Replace every page-level neutral background with <strong>#FAFAF7</strong> (the desk).
+    Set every card/container surface to <strong>#FFFFFF</strong>. Drop other tints.
+
+2.  Cards become floating paper. Drop borders. Drop radius (max 6 px).
+    Replace shadow with:
+        0 1px 2px rgba(14,14,14,.04),
+        0 8px 20px -6px rgba(14,14,14,.08),
+        0 24px 40px -18px rgba(14,14,14,.12).
+
+3.  Every divider becomes a single hairline: <strong>1px solid rgba(14,14,14,.10)</strong>.
+    Remove dividers that aren't separating real sections.
+
+4.  Type stack:
+        Display → Space Grotesk · 500 · -0.02 em
+        Body    → Inter
+        Stamps  → JetBrains Mono · 11/9.5 px · uppercase · 0.14 em
+    Remove every serif.
+
+5.  Colors: ink <strong>#0E0E0E</strong>, mute <strong>#6E6E73</strong>. Strip all other greys.
+
+6.  Teal <strong>#4A8580</strong> is only ever a highlighter gradient behind inline text —
+    never a flat fill, button background, badge fill, or border.
+
+7.  Buttons: primary = ink fill, white text, no radius beyond 6 px;
+    secondary = white fill, 1.25 px ink border. Mono caps label. Remove other variants.
+
+8.  Remove all emoji. Keep functional icons (recolor to ink).
+    Decorative icons next to headings become a single teal dot.
+      </pre>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       FOOTER
+       ============================================================ -->
+  <footer class="footer">
+    <span>Superiora · Paper Kit · v 0.1</span>
+    <span>Maintained by Athena · 15 may 2026</span>
+  </footer>
+
+</div>
+
+<script>
+  // Tiny calendar in the components section
+  (function () {
+    const cal = document.getElementById('cal');
+    if (!cal) return;
+    const days = ['M','T','W','T','F','S','S'];
+    let html = '';
+    for (const d of days) html += '<div style="font-weight:600">' + d + '</div>';
+    for (let n = 1; n <= 30; n++) {
+      const hl = (n >= 22 && n <= 26)
+        ? 'background: var(--fp-hl); background-repeat: no-repeat; background-size: 100% 75%; background-position: 0 60%;'
+        : '';
+      const bold = (n === 24) ? 'font-weight: 700;' : '';
+      html += '<div style="padding: 2px 0;' + hl + bold + '">' + n + '</div>';
+    }
+    cal.innerHTML = html;
+  })();
+</script>
+</body>
+</html>

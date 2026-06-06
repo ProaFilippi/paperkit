@@ -1,0 +1,806 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Paper-kit · BI components</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="paper-kit.css" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #FAFAF7;
+    background-image: radial-gradient(circle, rgba(14,14,14,0.07) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    color: #0E0E0E;
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #root { min-height: 100vh; }
+  *, *::before, *::after { box-sizing: border-box; }
+  .pk-sheet {
+    background: #FFFFFF;
+    margin: 56px auto 96px;
+    max-width: 1320px;
+    box-shadow:
+      0 1px 2px rgba(14,14,14,0.04),
+      0 18px 36px -10px rgba(14,14,14,0.10),
+      0 56px 96px -32px rgba(14,14,14,0.18);
+  }
+  @media (max-width: 1380px) {
+    .pk-sheet { margin-left: 32px; margin-right: 32px; }
+  }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="dashboard-base.jsx"></script>
+<script type="text/babel" src="bi.jsx"></script>
+
+<script type="text/babel">
+const { useState } = React;
+const { ink, mute, hair, teal, display, body: bodyFont, mono } = PK;
+
+/* =============================================================
+   Section frame — every BI sample sits inside one
+   ============================================================= */
+function BISection({ idx, name, descr, children }) {
+  return (
+    <section style={{
+      padding: "44px 0",
+      borderTop: `1px solid ${hair}`,
+    }}>
+      <div style={{ display: "grid", gridTemplateColumns: "200px 1fr", gap: 56, marginBottom: 28 }}>
+        <div>
+          <Stamp m style={{ display: "block", marginBottom: 8 }}>0{idx} · BI component</Stamp>
+          <h2 style={{
+            fontFamily: display, fontWeight: 500,
+            fontSize: 32, letterSpacing: "-0.02em",
+            margin: 0, lineHeight: 1.05,
+          }}>{name}</h2>
+        </div>
+        <p style={{
+          fontFamily: bodyFont, fontSize: 14.5,
+          color: mute, lineHeight: 1.55, margin: 0,
+          maxWidth: "60ch", textWrap: "pretty",
+        }}>{descr}</p>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+/* =============================================================
+   Demo data
+   ============================================================= */
+const TILE_DATA = [
+  { label: "Six-year graduation", value: 94, unit: "%", delta: "+2.1 pp YoY · +6.4 vs peer", deltaDir: "up",
+    spark: [0.20, 0.32, 0.40, 0.52, 0.62, 0.74, 0.92],
+    sparkPeer: [0.18, 0.22, 0.26, 0.30, 0.34, 0.42, 0.50],
+    peerLabel: "Peer avg · R1 (22)", peerValue: "86.0%", tier: "Q4" },
+  { label: "Cost per FTE", value: "$48.4", unit: "k", delta: "−1.8% YoY · +$3.1k vs peer", deltaDir: "warn",
+    spark: [0.60, 0.55, 0.50, 0.52, 0.46, 0.42, 0.40],
+    sparkPeer: [0.30, 0.34, 0.38, 0.40, 0.44, 0.50, 0.54],
+    peerLabel: "Peer avg", peerValue: "$45.3k", tier: "Q2" },
+  { label: "Endowment per student", value: "$684", unit: "k", delta: "+4.2% YTD · +$186 vs peer", deltaDir: "up",
+    spark: [0.20, 0.30, 0.40, 0.50, 0.62, 0.78, 0.92],
+    sparkPeer: [0.15, 0.20, 0.28, 0.34, 0.40, 0.48, 0.56],
+    peerLabel: "Peer avg", peerValue: "$498k", tier: "Q4" },
+];
+
+const TREND_LABELS = ["'17","'18","'19","'20","'21","'22","'23","'24","'25"];
+const TREND_YOU    = [82, 84, 86, 88, 89, 90, 91.5, 93, 94];
+const TREND_PEER   = [[72,79],[73,79.5],[73,80],[74,81],[75,81.5],[76,82],[76,83],[77,84],[78,84.5]];
+const TREND_MEDIAN = [75.5, 76, 76.5, 77, 78, 79, 79.5, 80.5, 81];
+
+const HEATMAP_ROWS = [
+  { name: "Stanford University", you: true,
+    cells: [
+      { value: 94, percentile: 92 },
+      { value: 98, percentile: 95 },
+      { value: 42, percentile: 50 },
+      { value: 87, percentile: 87 },
+      { value: 28, percentile: 28 },
+      { value: 22, percentile: 90 },
+      { value: 71, percentile: 75 },
+      { value: 53, percentile: 50 },
+    ] },
+  { name: "Univ. of Northbrook",
+    cells: [
+      { value: 92, percentile: 88 }, { value: 96, percentile: 92 },
+      { value: 68, percentile: 75 }, { value: 94, percentile: 92 },
+      { value: 12, percentile: 12 }, { value: 14, percentile: 90 },
+      { value: 88, percentile: 88 }, { value: 86, percentile: 88 },
+    ] },
+  { name: "Westmont State",
+    cells: [
+      { value: 90, percentile: 86 }, { value: 88, percentile: 82 },
+      { value: 52, percentile: 50 }, { value: 48, percentile: 48 },
+      { value: 55, percentile: 50 }, { value: 28, percentile: 75 },
+      { value: 52, percentile: 50 }, { value: 32, percentile: 28 },
+    ] },
+  { name: "Pinehurst College",
+    cells: [
+      { value: 88, percentile: 78 }, { value: 86, percentile: 78 },
+      { value: 38, percentile: 28 }, { value: 32, percentile: 28 },
+      { value: 68, percentile: 68 }, { value: 42, percentile: 50 },
+      { value: 32, percentile: 28 }, { value: 14, percentile: 12 },
+    ] },
+  { name: "Atlantic University",
+    cells: [
+      { value: 86, percentile: 75 }, { value: 82, percentile: 50 },
+      { value: 48, percentile: 48 }, { value: 54, percentile: 50 },
+      { value: 22, percentile: 22 }, { value: 42, percentile: 50 },
+      { value: 58, percentile: 55 }, { value: 68, percentile: 75 },
+    ] },
+  { name: "Cedar Hill State",
+    cells: [
+      { value: 84, percentile: 50 }, { value: 79, percentile: 50 },
+      { value: 62, percentile: 75 }, { value: 28, percentile: 25 },
+      { value: 44, percentile: 44 }, { value: 38, percentile: 50 },
+      { value: 48, percentile: 48 }, { value: 30, percentile: 28 },
+    ] },
+];
+
+const RANKING_ROWS = [
+  { rank: 1, name: "Princeton",      value: 97.4 },
+  { rank: 2, name: "Harvard",        value: 96.8 },
+  { rank: 3, name: "Yale",           value: 96.0 },
+  { rank: 4, name: "Brown",          value: 95.1 },
+  { rank: 5, name: "Stanford",       value: 94.0, you: true },
+  { rank: 6, name: "Penn",           value: 93.8 },
+  { rank: 7, name: "Duke",           value: 93.5 },
+  { rank: 8, name: "Dartmouth",      value: 93.2 },
+  { rank: 9, name: "Cornell",        value: 92.8 },
+  { rank: 10, name: "Columbia",      value: 91.6 },
+];
+
+const SMALL_MULTI = [
+  { label: "Grad rate",     value: "94%",   delta: "▲ 2.1", deltaDir: "up",   percentile: "P92", peerValue: "86%",   peerDelta: "+8",   spark: [0.2,0.4,0.55,0.7,0.85,0.95], highlight: true },
+  { label: "Retention",     value: "98%",   delta: "▲ 0.8", deltaDir: "up",   percentile: "P95", peerValue: "93%",   peerDelta: "+5",   spark: [0.4,0.5,0.6,0.7,0.85,0.95], highlight: true },
+  { label: "Yield",         value: "42%",   delta: "— 0.0", deltaDir: "flat", percentile: "P42", peerValue: "43%",   peerDelta: "−1",   spark: [0.5,0.5,0.45,0.5,0.5,0.5] },
+  { label: "Selectivity",   value: "14%",   delta: "▲ tighter", deltaDir: "up", percentile: "P78", peerValue: "38%", peerDelta: "−24",  spark: [0.7,0.65,0.55,0.45,0.35,0.25] },
+  { label: "Endow / FTE",   value: "$684k", delta: "▲ 4.2", deltaDir: "up",   percentile: "P87", peerValue: "$498k", peerDelta: "+$186", spark: [0.1,0.25,0.4,0.55,0.75,0.95], highlight: true },
+  { label: "Cost / FTE",    value: "$48.4k", delta: "▼ 1.8", deltaDir: "dn", percentile: "P28", peerValue: "$45.3k", peerDelta: "+$3.1", spark: [0.5,0.55,0.6,0.55,0.45,0.4] },
+  { label: "Faculty : Stu", value: "1:8.2", delta: "▲ better", deltaDir: "up", percentile: "P75", peerValue: "1:9.6", peerDelta: "−1.4", spark: [0.8,0.7,0.6,0.5,0.4,0.3], highlight: true },
+  { label: "Research $",    value: "$182M", delta: "▲ 6.0", deltaDir: "up",   percentile: "P53", peerValue: "$176M", peerDelta: "+$6M", spark: [0.3,0.35,0.4,0.45,0.5,0.55] },
+];
+
+const COMP_SEGMENTS = [
+  { key: "tuition",  label: "Net tuition & fees" },
+  { key: "state",    label: "State appropriation" },
+  { key: "endow",    label: "Endowment payout" },
+  { key: "gifts",    label: "Gifts & grants" },
+  { key: "other",    label: "Auxiliary & other" },
+];
+
+const FUNNEL_STAGES = [
+  { step: "01 · Top of funnel", label: "Inquiries",   you: 48200, peer: 42500, deltaPct: "+13%", deltaDir: "up", conv: "conv: you 32% · peer 38%" },
+  { step: "02",                 label: "Applications",you: 15420, peer: 16150, deltaPct: "−5%",  deltaDir: "dn", conv: "conv: you 56% · peer 52%" },
+  { step: "03",                 label: "Admitted",    you: 8635,  peer: 8398,  deltaPct: "+3%",  deltaDir: "up", conv: "yield: you 42% · peer 43%" },
+  { step: "04",                 label: "Deposited",   you: 3627,  peer: 3611,  deltaPct: "+0.4%",deltaDir: "flat", conv: "melt: you 7% · peer 9%" },
+  { step: "05 · Bottom",        label: "Enrolled",    you: 3373,  peer: 3286,  deltaPct: "+2.6%",deltaDir: "up" },
+];
+
+const WATERFALL = {
+  start: { label: "Peer avg", value: 20.4 },
+  end:   { label: "Stanford", value: 23.8 },
+  steps: [
+    { label: "Net tuition", sub: "+8.8%",  delta:  1.8 },
+    { label: "Auxiliary",   sub: "+5.9%",  delta:  1.2 },
+    { label: "Endowment",   sub: "+4.4%",  delta:  0.9 },
+    { label: "State approp",sub: "−2.5%",  delta: -0.5 },
+  ],
+};
+
+const SANKEY_DATA = {
+  sources: [
+    { id: "ftf",   label: "First-time freshman", value: 2840 },
+    { id: "trin",  label: "Transfer in",         value: 1920 },
+    { id: "cont",  label: "Continuing",          value: 1580 },
+    { id: "ret",   label: "Returning",           value: 1290 },
+    { id: "intl",  label: "International",       value: 1120 },
+  ],
+  targets: [
+    { id: "g4",    label: "Graduated 4yr",  value: 5260, pct: "64%", tone: "good" },
+    { id: "g6",    label: "Graduated 6yr",  value: 1630, pct: "20%" },
+    { id: "to",    label: "Transferred out",value:  680, pct: "8%" },
+    { id: "se",    label: "Still enrolled", value:  560, pct: "7%" },
+    { id: "so",    label: "Stopped out",    value:  220, pct: "3%", tone: "crit" },
+  ],
+  you: [
+    { from: "ftf",  to: "g4",  value: 1900 },
+    { from: "ftf",  to: "g6",  value:  580 },
+    { from: "ftf",  to: "se",  value:  220 },
+    { from: "ftf",  to: "to",  value:  100 },
+    { from: "ftf",  to: "so",  value:   40 },
+    { from: "trin", to: "g4",  value: 1300 },
+    { from: "trin", to: "g6",  value:  340 },
+    { from: "trin", to: "to",  value:  180 },
+    { from: "trin", to: "so",  value:  100 },
+    { from: "cont", to: "g4",  value: 1050 },
+    { from: "cont", to: "g6",  value:  380 },
+    { from: "cont", to: "se",  value:  100 },
+    { from: "cont", to: "so",  value:   50 },
+    { from: "ret",  to: "g4",  value:  640 },
+    { from: "ret",  to: "g6",  value:  250 },
+    { from: "ret",  to: "to",  value:  220 },
+    { from: "ret",  to: "se",  value:  140 },
+    { from: "ret",  to: "so",  value:   40 },
+    { from: "intl", to: "g4",  value:  370 },
+    { from: "intl", to: "g6",  value:   80 },
+    { from: "intl", to: "to",  value:  180 },
+    { from: "intl", to: "se",  value:  100 },
+    { from: "intl", to: "so",  value:  390 },
+  ],
+  peer: [
+    { from: "ftf",  to: "g4",  value: 1100 },
+    { from: "ftf",  to: "g6",  value:  800 },
+    { from: "ftf",  to: "to",  value:  400 },
+    { from: "trin", to: "g4",  value:  900 },
+    { from: "trin", to: "g6",  value:  500 },
+    { from: "cont", to: "g4",  value:  700 },
+    { from: "cont", to: "g6",  value:  400 },
+    { from: "ret",  to: "g4",  value:  400 },
+    { from: "intl", to: "g4",  value:  300 },
+    { from: "intl", to: "so",  value:  200 },
+  ],
+};
+
+const QUADRANT_PEERS = [
+  [40,82],[44,88],[46,84],[48,86],[50,85],[52,87],[54,89],[56,90],
+  [42,81],[46,83],[48,82],[50,80],[42,86],[48,89],[52,92],[56,88],
+  [44,84],[50,86],[40,80],[52,91],[48,85],[46,87],
+];
+
+const GEO_CELLS = [
+  // row 0 — northern border
+  { row:0, col:0,  code:"WA", share:0.20 },
+  { row:0, col:1,  code:"OR", share:0.15 },
+  { row:0, col:9,  code:"VT", share:0.10 },
+  { row:0, col:10, code:"NH", share:0.15 },
+  { row:0, col:11, code:"ME", share:0.20 },
+  // row 1
+  { row:1, col:0,  code:"ID", share:0.10 },
+  { row:1, col:1,  code:"MT", share:0.10 },
+  { row:1, col:2,  code:"ND", share:0.20 },
+  { row:1, col:3,  code:"MN", share:0.30 },
+  { row:1, col:4,  code:"WI", share:0.42, peerOver:true },
+  { row:1, col:5,  code:"MI", share:0.35, peerOver:true },
+  { row:1, col:6,  code:"NY", share:0.30 },
+  { row:1, col:7,  code:"MA", share:0.25 },
+  { row:1, col:8,  code:"RI", share:0.12 },
+  // row 2
+  { row:2, col:0,  code:"CA", share:0.95, you:true },
+  { row:2, col:1,  code:"NV", share:0.20 },
+  { row:2, col:2,  code:"UT", share:0.15 },
+  { row:2, col:3,  code:"WY", share:0.10 },
+  { row:2, col:4,  code:"SD", share:0.20 },
+  { row:2, col:5,  code:"IA", share:0.40, peerOver:true },
+  { row:2, col:6,  code:"IL", share:0.30, peerOver:true },
+  { row:2, col:7,  code:"OH", share:0.30 },
+  { row:2, col:8,  code:"PA", share:0.30 },
+  { row:2, col:9,  code:"NJ", share:0.30 },
+  { row:2, col:10, code:"CT", share:0.20 },
+  // row 3
+  { row:3, col:1,  code:"AZ", share:0.20 },
+  { row:3, col:2,  code:"CO", share:0.30 },
+  { row:3, col:3,  code:"NE", share:0.20 },
+  { row:3, col:4,  code:"MO", share:0.30, peerOver:true },
+  { row:3, col:5,  code:"IN", share:0.20 },
+  { row:3, col:6,  code:"KY", share:0.15 },
+  { row:3, col:7,  code:"WV", share:0.10 },
+  { row:3, col:8,  code:"VA", share:0.18 },
+  { row:3, col:9,  code:"MD", share:0.20 },
+  { row:3, col:10, code:"DE", share:0.10 },
+  // row 4
+  { row:4, col:1,  code:"NM", share:0.10 },
+  { row:4, col:2,  code:"OK", share:0.15 },
+  { row:4, col:3,  code:"KS", share:0.15 },
+  { row:4, col:4,  code:"AR", share:0.15 },
+  { row:4, col:5,  code:"TN", share:0.18 },
+  { row:4, col:6,  code:"NC", share:0.20 },
+  { row:4, col:7,  code:"SC", share:0.16 },
+  { row:4, col:8,  code:"DC", share:0.18 },
+  // row 5
+  { row:5, col:3,  code:"TX", share:0.40 },
+  { row:5, col:4,  code:"LA", share:0.15 },
+  { row:5, col:5,  code:"MS", share:0.10 },
+  { row:5, col:6,  code:"AL", share:0.12 },
+  { row:5, col:7,  code:"GA", share:0.25 },
+  { row:5, col:8,  code:"FL", share:0.36 },
+  // row 6 — non-contiguous outliers
+  { row:6, col:0,  code:"AK", share:0.06 },
+  { row:6, col:1,  code:"HI", share:0.08 },
+];
+
+// International applicants live in their own card — geography for the
+// US map; the international panel summarises country share + trend.
+const INTL_COUNTRIES = [
+  { rank: 1, name: "China",         value: "28%" },
+  { rank: 2, name: "India",         value: "16%" },
+  { rank: 3, name: "South Korea",   value: "9%"  },
+  { rank: 4, name: "United Kingdom",value: "6%"  },
+  { rank: 5, name: "Canada",        value: "5%"  },
+  { rank: 6, name: "Singapore",     value: "4%"  },
+];
+
+const GEO_SIDE = [
+  { rank: 1, name: "California",   value: "38%", you: true },
+  { rank: 2, name: "Illinois",     value: "14%" },
+  { rank: 3, name: "Texas",        value: "10%" },
+  { rank: 4, name: "New York",     value: "8%" },
+  { rank: 5, name: "Washington",   value: "5%" },
+  { rank: 6, name: "Massachusetts",value: "4%" },
+];
+
+/* =============================================================
+   App
+   ============================================================= */
+function App() {
+  return (
+    <div className="pk-sheet" style={{ padding: "8px 56px 56px" }}>
+      {/* Masthead */}
+      <header style={{ padding: "40px 0 28px" }}>
+        <Breadcrumb crumbs={[
+          { label: "Paper Kit",  href: "index.html" },
+          { label: "BI library", active: true },
+        ]} />
+        <div style={{ display: "grid", gridTemplateColumns: "1.4fr auto", gap: 48, alignItems: "flex-start" }}>
+          <div>
+            <Stamp m style={{ marginBottom: 14, display: "block" }}>19 components · paper register</Stamp>
+            <h1 style={{
+              fontFamily: display, fontWeight: 500,
+              fontSize: 72, lineHeight: 0.92,
+              letterSpacing: "-0.025em",
+              margin: 0, color: ink, maxWidth: "12ch",
+            }}>BI, in <HL strong>paper</HL>.</h1>
+            <p style={{
+              fontFamily: bodyFont, fontSize: 16,
+              lineHeight: 1.55, margin: "16px 0 0",
+              color: "#2D2D2D", maxWidth: "54ch", textWrap: "pretty",
+            }}>
+              The full set, translated. White paper, hairlines, mono caps, single teal accent.
+              No gradients, no glow, no rounded chrome — every shape earns its space.
+            </p>
+          </div>
+          <ContextSelectors institution={INST} peerGroup={PEER_GROUP} />
+        </div>
+      </header>
+
+      {/* Quick-jump */}
+      <div style={{
+        display: "flex", flexWrap: "wrap", gap: 16,
+        marginTop: 8, paddingTop: 16, paddingBottom: 4,
+        borderTop: `1px solid ${hair}`,
+        borderBottom: `1px solid ${hair}`,
+      }}>
+        {[
+          "KPI tile","Trend band","Distribution","Ranking","Small multiples",
+          "Composition","Funnel","Gauge","Waterfall","Sankey",
+          "Quadrant","GeoMap","Heatmap",
+          "Bullet","Big number","Compare bar","Stat strip","Variance","Progress",
+          "Donut",
+        ].map((n, i) => (
+          <a key={n} href={`#bi-${i+1}`} style={{
+            fontFamily: mono, fontSize: 10.5,
+            letterSpacing: "0.10em", textTransform: "uppercase",
+            color: mute, textDecoration: "none",
+          }}>{String(i+1).padStart(2,"0")} {n}</a>
+        ))}
+      </div>
+
+      <div id="bi-1"><BISection idx={1} name="KPI tile" descr="The atomic unit. Value · delta · sparkline · peer comparator. Use in 3- or 4-up grids when you want the headline numbers to lead.">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0,1fr))", gap: 18 }}>
+          {TILE_DATA.map(t => <BIKpiTile key={t.label} {...t} />)}
+        </div>
+      </BISection></div>
+
+      <div id="bi-2"><BISection idx={2} name="Trend with peer band" descr="A line over a P25–P75 cohort band. Dashed median, end-of-line marker on you. The most-used analytical shape in IPEDS work — strict ink + teal palette.">
+        <BITrendBand
+          stamp="Trend · 2017–2025"
+          title="Six-year graduation rate, 2017–2025"
+          sub="Stanford line against the R1 Private cohort band and median."
+          right={<YouCallout label="+6.4 vs peer median" />}
+          labels={TREND_LABELS}
+          you={TREND_YOU}
+          peer={TREND_PEER}
+          peerMedian={TREND_MEDIAN}
+          yMin={70} yMax={100}
+        />
+      </BISection></div>
+
+      <div id="bi-3"><BISection idx={3} name="Distribution" descr="Where you sit in the cohort. Histogram bars are peers; teal marker is you with a label sticker. Add a dashed median tick for orientation.">
+        <BIDistribution
+          stamp="Distribution · 2024"
+          title="Acceptance rate · R1 Private cohort"
+          sub="More-selective end on the left. You sit at the 14% bin — second quintile from the selective edge."
+          right={<YouCallout label="P22 · more selective" />}
+          bars={[1, 2, 3, 4, 6, 7, 5, 3, 2, 1, 1]}
+          youIdx={1}
+          youLabel="You · 14%"
+          xRange={["5%","75%"]}
+          medianIdx={4}
+        />
+      </BISection></div>
+
+      <div id="bi-4"><BISection idx={4} name="Ranking" descr="Sorted bar list. Diamond on each bar = peer average; teal bar = you. Reads best at 8–12 rows — beyond that, switch to small multiples.">
+        <BIRanking
+          stamp="Peer rank"
+          title="Six-year graduation · R1 Private (22)"
+          sub="Sorted descending. The diamond on each bar is the peer-cohort average."
+          rows={RANKING_ROWS}
+          peerAvgPct={92}
+          maxBarPct={100}
+        />
+      </BISection></div>
+
+      <div id="bi-5"><BISection idx={5} name="Small multiples" descr="The scorecard view: 8–12 micro-tiles, each a self-contained KPI with sparkline and peer line. Cards flagged in teal whenever the metric is in the top quartile of the cohort.">
+        <BISmallMultiples
+          stamp="FY25 scorecard"
+          title="Operational scorecard · 8 metrics × peer cohort"
+          sub="Top-quartile metrics get the teal frame so the eye finds outliers first."
+          items={SMALL_MULTI}
+        />
+      </BISection></div>
+
+      <div id="bi-6"><BISection idx={6} name="Composition" descr="Stacked twin bars — you vs peer mix — paired with a category-level table that shows percentages and the delta from peer for each segment.">
+        <BIComposition
+          stamp="Revenue mix · FY25"
+          title="Where the operating dollars come from"
+          sub="Your mix is more tuition-dependent and less endowment-supported than the cohort. The category table makes the gap explicit."
+          segments={COMP_SEGMENTS}
+          you={{ tuition: 48, state: 18, endow: 14, gifts: 12, other: 8 }}
+          peer={{ tuition: 38, state: 22, endow: 22, gifts: 14, other: 4 }}
+        />
+      </BISection></div>
+
+      <div id="bi-7"><BISection idx={7} name="Funnel" descr="Stage-by-stage conversion. Each row has a peer baseline bar with you overlaid in teal; the conversion line beneath shows where your rate diverges from the cohort.">
+        <BIFunnel
+          stamp="Fall 2025 cycle"
+          title="Admissions funnel · stage-by-stage"
+          sub="Conversions between rows are mono-caps lines, so the deltas read as numbers, not glyphs."
+          stages={FUNNEL_STAGES}
+        />
+      </BISection></div>
+
+      <div id="bi-8"><BISection idx={8} name="Gauge" descr="Half-arc against a peer P25–P75 band with a diamond at peer median and a teal needle for you. Best used in 3-up rows.">
+        <BIGauge
+          stamp="Goal tracking · vs peer"
+          title="Where you sit on three watch metrics"
+          sub="Gauges are a tactical read — fast comparison against a known band. Use them sparingly; they don't carry trend."
+          gauges={[
+            { label: "4-year graduation", value: 87.2, unit: "%", delta: "▲ 2.1 vs LY", deltaDir: "up",
+              min: 70, max: 95, peerBand: [78, 86], peerMedian: 81, you: 87, peerNote: "81% · +6.4" },
+            { label: "Yield rate",        value: 42.1, unit: "%", delta: "— flat vs LY", deltaDir: "flat",
+              min: 30, max: 58, peerBand: [40, 48], peerMedian: 43, you: 42, peerNote: "43% · −1.2" },
+            { label: "Cost per FTE (low better)", value: "$48.4", unit: "k", delta: "▼ 1.8% vs LY", deltaDir: "warn",
+              min: 35, max: 65, peerBand: [42, 48], peerMedian: 45, you: 48.4, peerNote: "$45.3k · +$3.1" },
+          ]}
+        />
+      </BISection></div>
+
+      <div id="bi-9"><BISection idx={9} name="Waterfall" descr="Bridge from peer average → you. Green steps add, crimson steps subtract. The final bar is teal — the answer. Drop it whenever you owe someone an explanation of a gap.">
+        <BIWaterfall
+          stamp="Net-revenue bridge"
+          title="What drives your $3.4k revenue lead per FTE?"
+          sub="Bridge starts at the peer-cohort average and walks through each driver until it lands on you."
+          start={WATERFALL.start}
+          end={WATERFALL.end}
+          steps={WATERFALL.steps}
+          unit="$"
+        />
+      </BISection></div>
+
+      <div id="bi-10"><BISection idx={10} name="Sankey" descr="Cohort flow. Your flows in teal sit over peer-cohort flows in low-opacity ink, so divergences pop. Best for cohort or revenue allocation problems where shape matters more than magnitude.">
+        <BISankey
+          stamp="Cohort flow · entered Fall 2021"
+          title="Where your students go · 4-year cohort"
+          sub="Same five entry types, same five outcomes. Teal flows are you; ink flows are the peer-cohort average."
+          {...SANKEY_DATA}
+        />
+      </BISection></div>
+
+      <div id="bi-11"><BISection idx={11} name="Quadrant scatter" descr="Two metrics at once with a quadrant labelling system — efficient frontier, expensive/high-outcome, etc. You're a teal halo; peers are mute ink dots; peer-average is a crosshair.">
+        <BIQuadrant
+          stamp="Two-dimensional position"
+          title="Cost per FTE × six-year graduation"
+          sub="Quadrants reveal the efficient-frontier story: high outcome at moderate cost is upper-left."
+          right={<YouCallout label="Q2 · Efficient" />}
+          xRange={[32, 64]} yRange={[75, 95]}
+          xLabel="Cost per FTE ($k)" yLabel="Grad rate (%)"
+          peers={QUADRANT_PEERS}
+          you={[44, 94, "$44k · 94%"]}
+          peerAvg={[48, 84]}
+          quadrantLabels={{
+            tl: "EFFICIENT · HIGH OUTCOME",
+            tr: "EXPENSIVE · HIGH OUTCOME",
+            bl: "LOW COST · LOW OUTCOME",
+            br: "EXPENSIVE · LOW OUTCOME",
+          }}
+        />
+      </BISection></div>
+
+      <div id="bi-12"><BISection idx={12} name="Geographic map" descr="Tile-grid US choropleth. Ink ramp for share; teal ramp on states where you over-index vs the cohort. Your home state gets the bold teal tile. International applicants live in their own card — the US shape stays US-only.">
+        <BIGeoMap
+          stamp="Source geography · domestic"
+          title="Where your applicants come from"
+          sub="Each tile is a state; shading is your share of applications. Tiles in teal are states where you over-index vs the peer-cohort average. AK and HI sit in the lower-left as outliers."
+          cells={GEO_CELLS}
+          side={GEO_SIDE}
+        />
+        {/* International — separate card so the US tilegram is uncluttered */}
+        <div style={{ marginTop: 18 }}>
+          <Paper pad="24px 28px">
+            <BISectionHead
+              stamp="Source geography · international"
+              title="Applicants from abroad"
+              sub="2,840 applications from 64 countries · 11% of total · ▲ 3 pp YoY"
+              right={<YouCallout label="P74 · over-indexes vs peer" />}
+            />
+            <div style={{
+              display: "grid", gridTemplateColumns: "1fr 1fr",
+              gap: 28, alignItems: "start",
+            }}>
+              {/* Left: top countries list */}
+              <div>
+                <Stamp m style={{ display: "block", marginBottom: 10 }}>Top source countries</Stamp>
+                {INTL_COUNTRIES.map((c, i) => (
+                  <div key={c.name} style={{
+                    display: "grid", gridTemplateColumns: "24px 1fr 60px",
+                    alignItems: "center", gap: 10,
+                    padding: "10px 0",
+                    borderTop: i === 0 ? "none" : `1px solid ${hair}`,
+                  }}>
+                    <span style={{
+                      fontFamily: mono, fontSize: 10,
+                      color: mute, letterSpacing: "0.04em",
+                    }}>{String(c.rank).padStart(2,"0")}</span>
+                    <span style={{
+                      fontFamily: bodyFont, fontSize: 13, color: ink,
+                    }}>{c.name}</span>
+                    <span style={{
+                      fontFamily: mono, fontSize: 12,
+                      color: ink, fontWeight: 500, textAlign: "right",
+                    }}>{c.value}</span>
+                  </div>
+                ))}
+              </div>
+              {/* Right: regional rollup as a tiny donut */}
+              <BIDonut
+                stamp="Region mix"
+                title=""
+                sub=""
+                segments={[
+                  { key: "asia",   label: "East/South Asia", value: 58, focal: true },
+                  { key: "europe", label: "Europe / UK",     value: 16 },
+                  { key: "na",     label: "Canada / Mexico", value: 11 },
+                  { key: "latam",  label: "Latin America",   value:  8 },
+                  { key: "africa", label: "Africa / ME",     value:  7 },
+                ]}
+                centerValue="2,840"
+                centerLabel="intl. apps"
+                size={200}
+              />
+            </div>
+          </Paper>
+        </div>
+        {/* International admissions funnel — the journey, not the geography */}
+        <div style={{ marginTop: 18 }}>
+          <BIFunnelChart
+            stamp="International admissions · Fall 2025"
+            title="From application to enrolment"
+            sub="The journey for international applicants. Dashed outlines are the peer-cohort conversion rates at each stage."
+            right={<YouCallout label="+2 pp yield vs peer" />}
+            stages={[
+              { label: "Applications", sub: "64 countries",       value: 2840, peerValue: 2480 },
+              { label: "Admitted",     sub: "19% admit rate",     value:  540, peerValue:  496 },
+              { label: "Yielded",      sub: "46% yield",          value:  248, peerValue:  218 },
+              { label: "Enrolled",     sub: "97% retained",       value:  240, peerValue:  212 },
+            ]}
+          />
+        </div>
+      </BISection></div>
+
+      <div id="bi-13"><BISection idx={13} name="Cohort heatmap" descr="Institutions × metrics, percentile-coded as cell tone. Your row is highlighted in teal; the peer rows use the ink ramp. Best when you want the full cohort matrix on one screen.">
+        <BIHeatmap
+          stamp="Cohort matrix · 8 metrics × 6 peers"
+          title="Performance matrix"
+          sub="Cell colour is percentile within the cohort. Your row sits on top in teal."
+          columns={["Grad rate","Retention","Yield","Endow / FTE","Cost / FTE","Selectivity","Faculty ratio","Research $"]}
+          rows={HEATMAP_ROWS}
+        />
+      </BISection></div>
+
+      <div id="bi-14"><BISection idx={14} name="Bullet chart" descr="Stephen Few's design. One bar against three qualitative bands (poor / ok / good), with a target tick. More honest than a gauge and half the ink. Reads inline.">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 18 }}>
+          <BIBullet
+            label="Six-year graduation"
+            value={94} unit="%"
+            target={92}
+            ranges={[70, 80, 90, 100]}
+            peerLabel="R1 Private median" peerValue="86%"
+            showLegend
+          />
+          <BIBullet
+            label="Pell grad rate"
+            value={92} unit="%"
+            target={85}
+            ranges={[55, 70, 85, 100]}
+            peerLabel="R1 Private median" peerValue="78%"
+          />
+          <BIBullet
+            label="FY26 fundraising"
+            value={73} unit="%"
+            target={100}
+            ranges={[0, 50, 85, 110]}
+            peerLabel="Aspirational peers" peerValue="68%"
+          />
+          <BIBullet
+            label="Net tuition per FTE"
+            value={22.8} unit="k"
+            target={20}
+            ranges={[12, 18, 22, 28]}
+            peerLabel="R1 Private median" peerValue="$20.4k"
+          />
+        </div>
+      </BISection></div>
+
+      <div id="bi-15"><BISection idx={15} name="Big number" descr="Pure type, no chart. Massive display numeral, label, one paragraph of context. For when the headline IS the chart and adding a sparkline would weaken it.">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 18 }}>
+          <BIBigNumber
+            label="Six-year graduation"
+            value="94" unit="%"
+            delta="▲ +0.6 pp YoY · +8 pp vs peer median" deltaDir="up"
+            context="Two points above the peer p75 band. Lift is driven by Pell grad rate (+1.1 pp) and URM gap closure (+0.8 pp) — the underlying movement is doing more work than the headline."
+            peerLabel="R1 Private (22)"
+            peerValue="median 86%"
+          />
+          <BIBigNumber
+            label="First-year retention"
+            value="98" unit="%"
+            delta="▲ +0.2 pp YoY" deltaDir="up"
+            context="Highest in the peer set. Transfer-out has dropped 0.3 pp in the same window, which means retention is now absorbing students who would historically have left."
+            peerLabel="R1 Private (22)"
+            peerValue="median 93%"
+          />
+        </div>
+      </BISection></div>
+
+      <div id="bi-16"><BISection idx={16} name="Compare bar" descr="Two stacked horizontal bars (you / peer) with labels at each end. Simpler than Composition when there's only one metric, simpler than Ranking when there are only two rows.">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 18 }}>
+          <BICompareBar
+            label="Six-year graduation" unit="%"
+            youValue={94} youLabel="Stanford"
+            peerValue={86} peerLabel="R1 Private (22)"
+            max={100}
+          />
+          <BICompareBar
+            label="Net tuition per FTE" unit="k"
+            youValue={22.8} youLabel="Stanford"
+            peerValue={20.4} peerLabel="R1 Private (22)"
+            max={28}
+          />
+          <BICompareBar
+            label="Endowment per student" unit="k"
+            youValue={684} youLabel="Stanford"
+            peerValue={498} peerLabel="R1 Private (22)"
+            max={800}
+          />
+          <BICompareBar
+            label="Cost per FTE (low better)" unit="k"
+            youValue={48.4} youLabel="Stanford"
+            peerValue={45.3} peerLabel="R1 Private (22)"
+            max={60}
+          />
+        </div>
+      </BISection></div>
+
+      <div id="bi-17"><BISection idx={17} name="Stat strip" descr="A row of inline stats, hairline-divided, no charts. Use as a section anchor or as the masthead vitals strip on a dashboard.">
+        <BIStatStrip
+          stamp="FY25 vitals · 06 signals"
+          items={[
+            { label: "Total headcount",   value: "17.5", unit: "k",  delta: "+0.4 k YoY", deltaDir: "up", peerLabel: "R1 median",        peerValue: "14.2 k" },
+            { label: "Six-year grad",     value: "94",   unit: "%",  delta: "+0.6 pp YoY", deltaDir: "up", peerLabel: "R1 median",        peerValue: "86%"     },
+            { label: "First-year retention",value: "98", unit: "%",  delta: "+0.2 pp YoY", deltaDir: "up", peerLabel: "R1 median",        peerValue: "93%"     },
+            { label: "Net tuition / FTE",  value: "$54.2",unit: "k", delta: "+$1.1k YoY",  deltaDir: "up", peerLabel: "R1 median",        peerValue: "$42k"    },
+            { label: "Faculty FTE",        value: "2,180",unit: "",  delta: "+38 YoY",     deltaDir: "up", peerLabel: "R1 median",        peerValue: "1,640"   },
+            { label: "Endowment",          value: "$36.5",unit: "B", delta: "+2.1 % YoY",  deltaDir: "up", peerLabel: "R1 median",        peerValue: "$7.4B"   },
+          ]}
+        />
+      </BISection></div>
+
+      <div id="bi-18"><BISection idx={18} name="Variance bars" descr="Divergent bars centred on zero — each row swings positive or negative from a baseline. Best for a movements-vs-baseline list (peer median, prior year, target).">
+        <BIVariance
+          stamp="Stanford vs R1 Private median"
+          title="Where the lead sits"
+          sub="Each row is your delta from the peer median. Crimson = below; green = above. Cost is shown as a warm tone because higher is worse."
+          range={[-6, 16]}
+          unit=" pp"
+          baselineLabel="= peer median"
+          items={[
+            { name: "Six-year graduation",       delta:  8.0 },
+            { name: "First-year retention",      delta:  5.0 },
+            { name: "Pell grad rate",            delta: 14.0 },
+            { name: "URM gap closure",           delta:  3.8 },
+            { name: "Transfer-out (low better)", delta: -2.7 },
+            { name: "Yield",                     delta: -1.2 },
+            { name: "Cost per FTE",              delta:  3.1, dir: "warn" },
+          ]}
+        />
+      </BISection></div>
+
+      <div id="bi-19"><BISection idx={19} name="Progress to goal" descr="Single bar from 0 to target. Teal fill = current; ink tick = where you should be today. The only goal-oriented shape in the kit.">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0,1fr))", gap: 18 }}>
+          <BIProgress
+            label="FY26 campaign · $1B goal"
+            value={734} target={1000}
+            display="$734M of $1B raised"
+            pace={68}
+            paceLabel="pace · 68% by 18 May"
+            delta="▲ +$48M in May · above pace"
+          />
+          <BIProgress
+            label="FY26 enrolment to plan"
+            value={1620} target={1740}
+            display="1,620 of 1,740 deposits"
+            pace={96}
+            paceLabel="pace · 96% by 18 May"
+            delta="▼ −2.9 pp behind pace · follow-up window through 1 June"
+          />
+        </div>
+      </BISection></div>
+
+      <div id="bi-20"><BISection idx={20} name="Donut / pie" descr="Ring (or pie when hole={0}) with a center value, paired with a category table. Use for true part-to-whole questions — share of revenue, share of awards, share of applicants. Stick to ≤5 segments; beyond that the eye loses the count and a bar chart is honestly better.">
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 22 }}>
+          <BIDonut
+            stamp="FY25 · awards by level"
+            title="Awards conferred by degree"
+            sub="Donut variant. The focal slice is bachelor's; rest in the ink ramp."
+            segments={[
+              { key: "ba",   label: "Bachelor's",          value: 1740, focal: true },
+              { key: "ma",   label: "Master's",            value:  820 },
+              { key: "phd",  label: "Doctorate",           value:  340 },
+              { key: "prof", label: "Professional",        value:  210 },
+              { key: "cert", label: "Certificate",         value:  120 },
+            ]}
+            centerValue="3,230"
+            centerLabel="awards · FY25"
+            peer={{ ba: 56, ma: 22, phd: 9, prof: 8, cert: 5 }}
+          />
+          <BIDonut
+            stamp="FY25 · operating revenue"
+            title="Where the dollars come from"
+            sub="Pie variant (hole={0}). Net tuition is the focal slice; mix vs peer in the right column."
+            hole={0}
+            segments={[
+              { key: "tuition", label: "Net tuition & fees", value: 48, focal: true },
+              { key: "state",   label: "State appropriation", value: 18 },
+              { key: "endow",   label: "Endowment payout",    value: 14 },
+              { key: "gifts",   label: "Gifts & grants",      value: 12 },
+              { key: "other",   label: "Auxiliary & other",   value:  8 },
+            ]}
+            peer={{ tuition: 38, state: 22, endow: 22, gifts: 14, other: 4 }}
+          />
+        </div>
+      </BISection></div>
+
+      <PageFooter
+        left="Paper Kit · BI library · 20 components"
+        right="Drawn 18 may 2026"
+      />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

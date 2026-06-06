@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Superiora · IPEDS</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="paper-kit.css" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #FAFAF7;
+    background-image: radial-gradient(circle, rgba(14,14,14,0.07) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    color: #0E0E0E;
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #root { min-height: 100vh; }
+  *, *::before, *::after { box-sizing: border-box; }
+
+  .pk-sheet {
+    background: #FFFFFF;
+    margin: 56px auto 96px;
+    max-width: 1440px;
+    box-shadow:
+      0 1px 2px rgba(14,14,14,0.04),
+      0 18px 36px -10px rgba(14,14,14,0.10),
+      0 56px 96px -32px rgba(14,14,14,0.18);
+  }
+  @media (max-width: 1500px) {
+    .pk-sheet { margin-left: 32px; margin-right: 32px; }
+  }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="dashboard-base.jsx"></script>
+
+<script type="text/babel">
+const { useState } = React;
+const { ink, mute, hair, hairS, teal, display, body: bodyFont, mono } = PK;
+
+/* =============================================================
+   Year-at-a-glance — 6 vital signs across the whole dataset
+   ============================================================= */
+function VitalsStrip({ items }) {
+  return (
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
+      background: "#FFFFFF",
+      boxShadow:
+        "0 1px 2px rgba(14,14,14,0.04), 0 8px 20px -6px rgba(14,14,14,0.08), 0 24px 40px -18px rgba(14,14,14,0.12)",
+      marginBottom: 32,
+    }}>
+      {items.map((m, i) => (
+        <div key={m.label} style={{
+          padding: "26px 24px 26px",
+          borderLeft: i === 0 ? "none" : `1px solid ${hair}`,
+        }}>
+          <Stamp m>{m.subject}</Stamp>
+          <div style={{
+            marginTop: 14,
+            fontFamily: display, fontWeight: 500,
+            fontSize: 48, lineHeight: 0.92,
+            letterSpacing: "-0.025em",
+            fontVariantNumeric: "tabular-nums",
+          }}>
+            {m.value}{m.unit && <span style={{ fontSize: 22, marginLeft: 2 }}>{m.unit}</span>}
+          </div>
+          <div style={{
+            marginTop: 10,
+            fontFamily: bodyFont, fontSize: 13, color: "#2D2D2D",
+            lineHeight: 1.4,
+          }}>{m.label}</div>
+          <div style={{
+            marginTop: 10,
+            fontFamily: mono, fontSize: 10, letterSpacing: "0.06em", color: mute,
+          }}>
+            {m.delta}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* =============================================================
+   DomainCard — one L2 subject summary.
+   List of L3 sub-pages with one number each, plus Athena line.
+   ============================================================= */
+function DomainCard({ stamp, title, question, href, subpages, athenaLine, lifted }) {
+  return (
+    <Paper pad="28px 32px" lifted={lifted}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <Stamp m>{stamp}</Stamp>
+        <a href={href} style={{
+          fontFamily: mono, fontSize: 10.5,
+          letterSpacing: "0.14em", textTransform: "uppercase",
+          color: ink, fontWeight: 600,
+          textDecoration: "none",
+          borderBottom: `1px solid ${ink}`,
+          paddingBottom: 1,
+        }}>Open subject →</a>
+      </div>
+
+      <h2 style={{
+        fontFamily: display, fontSize: 32, fontWeight: 500,
+        lineHeight: 1.05, letterSpacing: "-0.018em",
+        margin: "12px 0 4px", color: ink,
+      }}>{title}</h2>
+
+      <p style={{
+        fontFamily: bodyFont, fontSize: 14.5, color: mute,
+        margin: 0, lineHeight: 1.5, maxWidth: "44ch",
+      }}>{question}</p>
+
+      <Hair style={{ margin: "22px 0 0" }} />
+
+      <div>
+        {subpages.map((s, i) => (
+          <div key={s.label} style={{
+            display: "grid",
+            gridTemplateColumns: "1fr auto",
+            alignItems: "baseline",
+            gap: 16,
+            padding: "12px 0",
+            borderBottom: i === subpages.length - 1 ? "none" : `1px solid ${hair}`,
+          }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+              <span style={{ fontFamily: bodyFont, fontSize: 13.5, color: ink, fontWeight: 500 }}>{s.label}</span>
+              <span style={{ fontFamily: mono, fontSize: 10, color: mute, letterSpacing: "0.06em" }}>{s.note}</span>
+            </div>
+            <span style={{
+              fontFamily: mono, fontSize: 13,
+              fontVariantNumeric: "tabular-nums",
+              color: ink, fontWeight: 600,
+              letterSpacing: "0.02em",
+            }}>{s.value}</span>
+          </div>
+        ))}
+      </div>
+
+      <Hair />
+
+      <div style={{ marginTop: 18, display: "flex", gap: 14, alignItems: "flex-start" }}>
+        <span style={{
+          fontFamily: display, fontSize: 13, fontWeight: 600,
+          backgroundImage: "var(--fp-hl)", backgroundRepeat: "no-repeat",
+          backgroundSize: "100% 60%", backgroundPosition: "0 65%",
+          padding: "0 5px", flex: "0 0 auto",
+        }}>Athena</span>
+        <p style={{
+          fontFamily: bodyFont, fontSize: 14, lineHeight: 1.55,
+          margin: 0, color: "#1A1A1A", textWrap: "pretty",
+        }}>{athenaLine}</p>
+      </div>
+    </Paper>
+  );
+}
+
+/* =============================================================
+   Coverage / freshness bar — the "is the data actually here" strip
+   ============================================================= */
+function CoverageStrip({ items }) {
+  return (
+    <div style={{
+      display: "flex", flexWrap: "wrap", gap: 28,
+      padding: "20px 28px",
+      background: "#FFFFFF",
+      boxShadow:
+        "0 1px 2px rgba(14,14,14,0.04), 0 8px 20px -6px rgba(14,14,14,0.08), 0 24px 40px -18px rgba(14,14,14,0.12)",
+      marginTop: 22,
+      alignItems: "center",
+    }}>
+      <Stamp>Dataset health</Stamp>
+      <span style={{ width: 14, height: 1, background: hair }} />
+      {items.map(it => (
+        <div key={it.label} style={{
+          display: "flex", alignItems: "baseline", gap: 8,
+        }}>
+          <Dot size={7} style={{
+            background: it.status === "ok" ? "#3D6B3D"
+                      : it.status === "warn" ? "#7A5A14"
+                      : "#8B2F28",
+          }} />
+          <Stamp m>{it.label}</Stamp>
+          <span style={{
+            fontFamily: mono, fontSize: 11, color: ink,
+            letterSpacing: "0.04em",
+          }}>{it.value}</span>
+        </div>
+      ))}
+      <span style={{ flex: 1 }} />
+      <Stamp m>IPEDS · 2018–2024 · refreshed 11 min ago</Stamp>
+    </div>
+  );
+}
+
+/* =============================================================
+   Data
+   ============================================================= */
+const VITALS = [
+  { subject: "Success",     label: "Six-year graduation",  value: "94",   unit: "%",  delta: "+0.6 pp YoY · p50 86%" },
+  { subject: "Success",     label: "First-year retention", value: "98",   unit: "%",  delta: "+0.2 pp YoY · p50 93%" },
+  { subject: "Enrollment",  label: "Total headcount",      value: "17.5", unit: "k",  delta: "+0.4 k YoY · p50 14.2 k" },
+  { subject: "Finance",     label: "Net tuition / FTE",    value: "$54.2", unit: "k", delta: "+$1.1k YoY · p50 $42k" },
+  { subject: "Faculty",     label: "Faculty FTE",          value: "2,180", unit: "",  delta: "+38 YoY · p50 1,640" },
+  { subject: "Finance",     label: "Endowment",            value: "$36.5", unit: "B", delta: "+2.1 % YoY · p50 $7.4B" },
+];
+
+const DOMAINS = [
+  {
+    stamp: "L2 · Success · 04 sections",
+    title: "Are students finishing what they start?",
+    question: "Graduation, retention, outcomes, transfers — the long arc of the degree.",
+    href: "Success.html",
+    subpages: [
+      { label: "Graduation & retention", note: "Six-year graduation",       value: "94%" },
+      { label: "Outcomes",               note: "Median earnings · 10 yrs",  value: "$87k" },
+      { label: "Transfers & mobility",   note: "Inbound transfers · 2024",  value: "612" },
+      { label: "Completions",            note: "Awards per FTE student",    value: "0.32" },
+    ],
+    athenaLine: "Stanford's success picture reads stronger than its headline — three of four sections band above the peer p75, and the URM gap is narrowing.",
+  },
+  {
+    stamp: "L2 · Enrollment · 04 sections",
+    title: "Who's enrolled, and how is the mix shifting?",
+    question: "Headcount, FTE, demographic composition, and first-time freshman flow.",
+    href: "#",
+    subpages: [
+      { label: "Headcount & FTE",     note: "Total · 2024",               value: "17,529" },
+      { label: "First-time freshmen", note: "Yield · class of 2024",      value: "82%" },
+      { label: "Demographic mix",     note: "URM share",                  value: "42%" },
+      { label: "International",       note: "Share of total enrollment",  value: "24%" },
+    ],
+    athenaLine: "Yield bounced back to its pre-2020 ceiling. International share has crept up 3 pp over three years — worth a longer read on visa risk.",
+  },
+  {
+    stamp: "L2 · Finance · 03 sections",
+    title: "Where the money comes from, where it goes.",
+    question: "Revenues, expenses, and the endowment — including per-FTE comparisons against the peer set.",
+    href: "#",
+    subpages: [
+      { label: "Revenues",      note: "Total operating · FY24",          value: "$7.3B" },
+      { label: "Expenses",      note: "Instruction share",               value: "38%" },
+      { label: "Endowment",     note: "Market value",                    value: "$36.5B" },
+    ],
+    athenaLine: "Instruction share is two points below the peer median — the comparator is research expense, which is doing the work. Worth surfacing that explicitly in the cabinet read.",
+  },
+  {
+    stamp: "L2 · Faculty & staff · 03 sections",
+    title: "Who is teaching, who is leading.",
+    question: "Headcount by track, tenure mix, and the salary picture against peers.",
+    href: "#",
+    subpages: [
+      { label: "Faculty headcount", note: "FTE · fall 2024",        value: "2,180" },
+      { label: "Tenure mix",        note: "Tenured / tenure-track",  value: "67%" },
+      { label: "Salaries",          note: "Median · full professor", value: "$228k" },
+    ],
+    athenaLine: "Tenure share is holding steady against a peer set that has slipped 2 pp in three years — a quiet but meaningful position.",
+  },
+  {
+    stamp: "L2 · Aid & affordability · 03 sections",
+    title: "What does this education actually cost?",
+    question: "Sticker price, net price, Pell penetration, and how aid stacks against income bands.",
+    href: "#",
+    subpages: [
+      { label: "Pell receivers",    note: "Share of undergraduates",   value: "24%" },
+      { label: "Net price",         note: "Median · in-state",         value: "$19.4k" },
+      { label: "Need met",          note: "Share of demonstrated need", value: "100%" },
+    ],
+    athenaLine: "Need-met at 100% remains rare in the peer set. Net price for under-$48k families dropped to zero in 2024 — a story worth telling explicitly.",
+  },
+  {
+    stamp: "L2 · Programs · 02 sections",
+    title: "What's offered, what's awarded.",
+    question: "Active degree programs and the shape of awards conferred each year.",
+    href: "#",
+    subpages: [
+      { label: "Active programs",  note: "Undergraduate + graduate",   value: "167" },
+      { label: "Awards conferred", note: "FY24 · STEM share",          value: "41%" },
+    ],
+    athenaLine: "Three CS-adjacent majors are absorbing the STEM tilt. Humanities completions held flat year-on-year — first time in five years they didn't fall.",
+  },
+];
+
+const COVERAGE = [
+  { label: "Success",     status: "ok",   value: "100%" },
+  { label: "Enrollment",  status: "ok",   value: "100%" },
+  { label: "Finance",     status: "ok",   value: "100%" },
+  { label: "Faculty",     status: "ok",   value: "100%" },
+  { label: "Aid",         status: "warn", value: "96%"  },
+  { label: "Programs",    status: "ok",   value: "100%" },
+];
+
+/* =============================================================
+   App
+   ============================================================= */
+function App() {
+  const [lenses, setLenses] = useState({ peer: true, diversity: "race", horizon: "5y" });
+
+  return (
+    <div className="pk-sheet" style={{ padding: "8px 56px 56px" }}>
+      <Masthead
+        institution={INST}
+        crumbs={[{ label: "IPEDS", active: true }]}
+        levelStamp="L1 · Dataset index · 06 subjects"
+        question={<>How does the <HL strong>year</HL> read?</>}
+        questionMaxCh={13}
+      />
+
+      <LensRow lenses={lenses} setLenses={setLenses} />
+
+      <Stamp m style={{ display: "block", marginBottom: 14 }}>Year at a glance · 06 vital signs</Stamp>
+      <VitalsStrip items={VITALS} />
+
+      <Stamp m style={{ display: "block", marginTop: 4, marginBottom: 14 }}>06 subjects · drill in</Stamp>
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+        gap: 22,
+      }}>
+        {DOMAINS.map((d, i) => (
+          <DomainCard key={d.title} {...d} lifted={i === 0} />
+        ))}
+      </div>
+
+      <CoverageStrip items={COVERAGE} />
+
+      <div style={{ marginTop: 28 }}>
+        <AthenaNote chips={["SCOPE · 06 subjects","SRC · IPEDS 2018-2024","PEER · R1 Private 22","CONF · high"]}>
+          The dataset reads quietly above the peer band in four of six subjects, with the strongest signal in
+          <HL> Success</HL> and <HL>Aid</HL>. The shape worth flagging: program mix is tilting STEM at roughly
+          double the peer rate, which the cabinet should hear before reading the Success page. Aid coverage
+          is at 96% (PY24 OM file partial) — should self-heal on next refresh, but worth a note in any
+          external-facing read.
+        </AthenaNote>
+      </div>
+
+      <PageFooter
+        left="Superiora · IPEDS · L1 index"
+        right="Stanford · 243744 · drawn 18 may 2026"
+      />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

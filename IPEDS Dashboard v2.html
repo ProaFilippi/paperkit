@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Superiora · IPEDS · Graduation & retention · v2</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="paper-kit.css" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #FAFAF7;
+    background-image: radial-gradient(circle, rgba(14,14,14,0.07) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    color: #0E0E0E;
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #root { min-height: 100vh; }
+  *, *::before, *::after { box-sizing: border-box; }
+  .pk-sheet {
+    background: #FFFFFF;
+    margin: 56px auto 96px;
+    max-width: 1440px;
+    box-shadow:
+      0 1px 2px rgba(14,14,14,0.04),
+      0 18px 36px -10px rgba(14,14,14,0.10),
+      0 56px 96px -32px rgba(14,14,14,0.18);
+  }
+  @media (max-width: 1500px) {
+    .pk-sheet { margin-left: 32px; margin-right: 32px; }
+  }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="dashboard-base.jsx"></script>
+<script type="text/babel" src="bi.jsx"></script>
+
+<script type="text/babel">
+const { useState } = React;
+const { ink, mute, hair, teal, display, body: bodyFont, mono } = PK;
+
+/* =============================================================
+   Data
+   ============================================================= */
+const SCORECARD = [
+  { label: "Six-year graduation", value: "94%",  delta: "▲ 0.6 pp", deltaDir: "up",   percentile: "P92", peerValue: "86%",   peerDelta: "+8",     highlight: true,
+    spark: [0.45, 0.55, 0.62, 0.70, 0.78, 0.85, 0.92] },
+  { label: "Four-year graduation",value: "82%",  delta: "▲ 1.4 pp", deltaDir: "up",   percentile: "P88", peerValue: "71%",   peerDelta: "+11",    highlight: true,
+    spark: [0.50, 0.55, 0.62, 0.68, 0.72, 0.78, 0.86] },
+  { label: "First-year retention",value: "98%",  delta: "▲ 0.2 pp", deltaDir: "up",   percentile: "P95", peerValue: "93%",   peerDelta: "+5",     highlight: true,
+    spark: [0.70, 0.75, 0.80, 0.85, 0.88, 0.92, 0.95] },
+  { label: "Pell grad rate · 6y", value: "92%",  delta: "▲ 1.1 pp", deltaDir: "up",   percentile: "P95", peerValue: "78%",   peerDelta: "+14",    highlight: true,
+    spark: [0.40, 0.48, 0.58, 0.68, 0.78, 0.85, 0.92] },
+  { label: "URM grad gap",        value: "−1.4 pp",delta: "▲ −0.8 pp", deltaDir: "up", percentile: "P90", peerValue: "−5.2 pp",peerDelta: "+3.8", highlight: true,
+    spark: [0.10, 0.18, 0.30, 0.42, 0.55, 0.68, 0.80] },
+  { label: "Transfer-out · 6y",   value: "3.1%", delta: "▼ 0.3 pp", deltaDir: "up",   percentile: "P88", peerValue: "5.8%",  peerDelta: "−2.7",   highlight: true,
+    spark: [0.70, 0.65, 0.58, 0.48, 0.40, 0.32, 0.25] },
+  { label: "URM enrollment",      value: "42%",  delta: "▲ 0.9 pp", deltaDir: "up",   percentile: "P64", peerValue: "36%",   peerDelta: "+6" ,
+    spark: [0.45, 0.48, 0.52, 0.55, 0.58, 0.60, 0.63] },
+  { label: "Pell share",          value: "24%",  delta: "— flat",   deltaDir: "flat", percentile: "P48", peerValue: "26%",   peerDelta: "−2",
+    spark: [0.50, 0.50, 0.48, 0.50, 0.50, 0.50, 0.48] },
+];
+
+const TREND_LABELS = ["'17","'18","'19","'20","'21","'22","'23","'24","'25"];
+const TREND_YOU    = [82, 84, 86, 88, 89, 90, 91.5, 93, 94];
+const TREND_PEER   = [[72,79],[73,79.5],[73,80],[74,81],[75,81.5],[76,82],[76,83],[77,84],[78,84.5]];
+const TREND_MEDIAN = [75.5, 76, 76.5, 77, 78, 79, 79.5, 80.5, 81];
+
+const PEER_RANK = [
+  { rank: 1, name: "Princeton",  value: 97.4 },
+  { rank: 2, name: "Harvard",    value: 96.8 },
+  { rank: 3, name: "Yale",       value: 96.0 },
+  { rank: 4, name: "Brown",      value: 95.1 },
+  { rank: 5, name: "Stanford",   value: 94.0, you: true },
+  { rank: 6, name: "Penn",       value: 93.8 },
+  { rank: 7, name: "Duke",       value: 93.5 },
+  { rank: 8, name: "Dartmouth",  value: 93.2 },
+];
+
+const QUADRANT_PEERS = [
+  [40,82],[44,88],[46,84],[48,86],[50,85],[52,87],[54,89],[56,90],
+  [42,81],[46,83],[48,82],[50,80],[42,86],[48,89],[52,92],[56,88],
+  [44,84],[50,86],[40,80],[52,91],[48,85],[46,87],
+];
+
+const WATERFALL = {
+  start: { label: "Peer median", value: 86.0 },
+  end:   { label: "Stanford",    value: 94.0 },
+  steps: [
+    { label: "First-year retention", sub: "+0.2 pp", delta: 2.4 },
+    { label: "Pell grad rate",       sub: "+1.1 pp", delta: 2.6 },
+    { label: "URM gap closure",      sub: "+0.8 pp", delta: 1.8 },
+    { label: "Transfer-out drop",    sub: "−0.3 pp", delta: 1.2 },
+  ],
+};
+
+const SANKEY = {
+  sources: [
+    { id: "ftf",  label: "First-time freshman", value: 1740 },
+    { id: "trin", label: "Transfer in",         value:  612 },
+    { id: "cont", label: "Continuing",          value:  840 },
+    { id: "ret",  label: "Returning",           value:  430 },
+    { id: "intl", label: "International",       value:  520 },
+  ],
+  targets: [
+    { id: "g4",  label: "Graduated 4yr",   value: 3360, pct: "78%", tone: "good" },
+    { id: "g6",  label: "Graduated 6yr",   value:  690, pct: "16%" },
+    { id: "to",  label: "Transferred out", value:  130, pct: "3%" },
+    { id: "se",  label: "Still enrolled",  value:   86, pct: "2%" },
+    { id: "so",  label: "Stopped out",     value:   76, pct: "1%", tone: "crit" },
+  ],
+  you: [
+    { from: "ftf",  to: "g4",  value: 1400 },
+    { from: "ftf",  to: "g6",  value:  240 },
+    { from: "ftf",  to: "se",  value:   60 },
+    { from: "ftf",  to: "to",  value:   30 },
+    { from: "ftf",  to: "so",  value:   10 },
+    { from: "trin", to: "g4",  value:  460 },
+    { from: "trin", to: "g6",  value:   90 },
+    { from: "trin", to: "to",  value:   40 },
+    { from: "trin", to: "so",  value:   22 },
+    { from: "cont", to: "g4",  value:  620 },
+    { from: "cont", to: "g6",  value:  180 },
+    { from: "cont", to: "se",  value:   18 },
+    { from: "cont", to: "so",  value:   22 },
+    { from: "ret",  to: "g4",  value:  320 },
+    { from: "ret",  to: "g6",  value:   80 },
+    { from: "ret",  to: "to",  value:   20 },
+    { from: "ret",  to: "se",  value:    8 },
+    { from: "ret",  to: "so",  value:    2 },
+    { from: "intl", to: "g4",  value:  340 },
+    { from: "intl", to: "g6",  value:   60 },
+    { from: "intl", to: "to",  value:   30 },
+    { from: "intl", to: "so",  value:   20 },
+  ],
+  peer: [
+    { from: "ftf",  to: "g4",  value: 1000 },
+    { from: "ftf",  to: "g6",  value:  500 },
+    { from: "ftf",  to: "to",  value:  200 },
+    { from: "ftf",  to: "so",  value:  100 },
+    { from: "trin", to: "g4",  value:  340 },
+    { from: "trin", to: "g6",  value:  180 },
+    { from: "cont", to: "g4",  value:  500 },
+    { from: "cont", to: "g6",  value:  240 },
+    { from: "ret",  to: "g4",  value:  240 },
+    { from: "intl", to: "g4",  value:  280 },
+    { from: "intl", to: "so",  value:  100 },
+  ],
+};
+
+const HEATMAP_ROWS = [
+  { name: "Stanford University", you: true,
+    cells: [
+      { value: 94, percentile: 92 }, { value: 98, percentile: 95 },
+      { value: 92, percentile: 95 }, { value: "−1.4", percentile: 90 },
+      { value: 3.1, percentile: 88 }, { value: 82, percentile: 88 },
+    ] },
+  { name: "Princeton",
+    cells: [
+      { value: 97, percentile: 95 }, { value: 98, percentile: 95 },
+      { value: 90, percentile: 90 }, { value: "−2.1", percentile: 85 },
+      { value: 2.0, percentile: 92 }, { value: 88, percentile: 92 },
+    ] },
+  { name: "Harvard",
+    cells: [
+      { value: 97, percentile: 92 }, { value: 97, percentile: 92 },
+      { value: 88, percentile: 85 }, { value: "−2.8", percentile: 78 },
+      { value: 2.4, percentile: 88 }, { value: 86, percentile: 88 },
+    ] },
+  { name: "Yale",
+    cells: [
+      { value: 96, percentile: 88 }, { value: 97, percentile: 92 },
+      { value: 86, percentile: 75 }, { value: "−3.1", percentile: 70 },
+      { value: 2.6, percentile: 85 }, { value: 84, percentile: 82 },
+    ] },
+  { name: "Brown",
+    cells: [
+      { value: 95, percentile: 82 }, { value: 96, percentile: 85 },
+      { value: 84, percentile: 70 }, { value: "−3.6", percentile: 60 },
+      { value: 3.2, percentile: 75 }, { value: 82, percentile: 75 },
+    ] },
+  { name: "Penn",
+    cells: [
+      { value: 94, percentile: 78 }, { value: 95, percentile: 80 },
+      { value: 80, percentile: 50 }, { value: "−4.2", percentile: 50 },
+      { value: 3.8, percentile: 60 }, { value: 78, percentile: 50 },
+    ] },
+];
+
+/* =============================================================
+   App
+   ============================================================= */
+function App() {
+  const [lenses, setLenses] = useState({ peer: true, diversity: "race", horizon: "5y" });
+
+  return (
+    <div className="pk-sheet" style={{ padding: "8px 56px 56px" }}>
+      <Masthead
+        institution={INST}
+        peerGroup={PEER_GROUP}
+        crumbs={[
+          { label: "IPEDS",                  href: "IPEDS.html" },
+          { label: "Success",                href: "Success.html" },
+          { label: "Graduation & retention", active: true },
+        ]}
+        levelStamp="L3 · Analytical view · v2"
+        question={<>Are students <HL strong>finishing</HL> what they start?</>}
+      />
+
+      <LensRow lenses={lenses} setLenses={setLenses} />
+
+      {/* Small multiples — the new headline row */}
+      <BISmallMultiples
+        stamp="Scorecard · 08 metrics"
+        title="Graduation & retention · the full picture"
+        sub="Top-quartile metrics frame in teal. Sparklines are 2018–2024."
+        items={SCORECARD}
+      />
+
+      {/* Trend + Ranking, side by side */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "1.55fr 1fr", gap: 22,
+        marginTop: 28,
+      }}>
+        <BITrendBand
+          stamp="Trend · 2017–2025"
+          title="Six-year graduation, 2017–2025"
+          sub="Stanford line against the R1 Private cohort band and median."
+          right={<YouCallout label="+13 pp" accent="vs peer median" />}
+          labels={TREND_LABELS}
+          you={TREND_YOU}
+          peer={TREND_PEER}
+          peerMedian={TREND_MEDIAN}
+          yMin={70} yMax={100}
+        />
+        <BIRanking
+          stamp="Peer rank · top 8"
+          title="Six-year graduation · R1 Private (22)"
+          sub="Diamond on each bar is the cohort average."
+          rows={PEER_RANK}
+          peerAvgPct={92}
+          maxBarPct={100}
+        />
+      </div>
+
+      {/* Quadrant + Waterfall */}
+      <div style={{
+        display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: 22,
+        marginTop: 22,
+      }}>
+        <BIQuadrant
+          stamp="Two-dimensional position"
+          title="Cost per FTE × six-year graduation"
+          sub="Quadrants reveal the efficient-frontier story: high outcome at moderate cost is upper-left. Stanford sits clearly in the efficient quadrant."
+          right={<YouCallout label="Q2 · Efficient" />}
+          xRange={[32, 64]} yRange={[75, 95]}
+          xLabel="Cost per FTE ($k)" yLabel="Grad rate (%)"
+          peers={QUADRANT_PEERS}
+          you={[44, 94, "$44k · 94%"]}
+          peerAvg={[48, 84]}
+          quadrantLabels={{
+            tl: "EFFICIENT · HIGH OUTCOME",
+            tr: "EXPENSIVE · HIGH OUTCOME",
+            bl: "LOW COST · LOW OUTCOME",
+            br: "EXPENSIVE · LOW OUTCOME",
+          }}
+        />
+        <BIWaterfall
+          stamp="Bridge · what drives the +8 pp lead"
+          title="From peer median → Stanford"
+          sub="Each step is a contributor to the gap. Green adds, crimson subtracts."
+          start={WATERFALL.start}
+          end={WATERFALL.end}
+          steps={WATERFALL.steps}
+          unit=""
+        />
+      </div>
+
+      {/* Sankey — cohort flow */}
+      <div style={{ marginTop: 22 }}>
+        <BISankey
+          stamp="Cohort flow · entered Fall 2019"
+          title="Where the cohort goes · 6-year outcomes"
+          sub="Same five entry types, same five outcomes. Teal flows are Stanford; ink flows are the peer-cohort average. Divergences read at a glance."
+          {...SANKEY}
+        />
+      </div>
+
+      {/* Heatmap — peer matrix */}
+      <div style={{ marginTop: 22 }}>
+        <BIHeatmap
+          stamp="Peer matrix · 6 metrics × 6 institutions"
+          title="The full position vs the top of the cohort"
+          sub="Cell shade is percentile within the R1 Private set. Stanford in teal; cohort in ink."
+          columns={["Six-year grad","First-year retention","Pell grad rate","URM grad gap","Transfer-out","Four-year grad"]}
+          rows={HEATMAP_ROWS}
+        />
+      </div>
+
+      <div style={{ marginTop: 28 }}>
+        <AthenaNote chips={["SRC · IPEDS GR/OM/EF 2024","PEER · R1 Private 22","COVERAGE · 100%","CONF · high"]}>
+          The six-year rate is <HL>quietly stronger than it reads</HL>. Stanford's band sits
+          two full points above the peer p75, and the waterfall shows the lift is doing more
+          than the headline number — Pell grad rate and URM gap closure contribute 4.4 pp
+          of the 8 pp peer-median gap. The Sankey makes the absorption explicit:
+          transfer-out has dropped, so first-year retention is now carrying students who
+          would historically have left. Worth a sub-section on second-year academic
+          standing before the cabinet read.
+        </AthenaNote>
+      </div>
+
+      <PageFooter
+        left="Superiora · IPEDS · L3 graduation &amp; retention · v2"
+        right="Stanford · 243744 · drawn 18 may 2026"
+      />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

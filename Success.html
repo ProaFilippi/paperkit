@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Superiora · IPEDS · Success</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="paper-kit.css" />
+<style>
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: #FAFAF7;
+    background-image: radial-gradient(circle, rgba(14,14,14,0.07) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    color: #0E0E0E;
+    font-family: "Inter", system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  #root { min-height: 100vh; }
+  *, *::before, *::after { box-sizing: border-box; }
+
+  .pk-sheet {
+    background: #FFFFFF;
+    margin: 56px auto 96px;
+    max-width: 1440px;
+    box-shadow:
+      0 1px 2px rgba(14,14,14,0.04),
+      0 18px 36px -10px rgba(14,14,14,0.10),
+      0 56px 96px -32px rgba(14,14,14,0.18);
+  }
+  @media (max-width: 1500px) {
+    .pk-sheet { margin-left: 32px; margin-right: 32px; }
+  }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="dashboard-base.jsx"></script>
+
+<script type="text/babel">
+const { useState } = React;
+const { ink, mute, hair, hairS, teal, display, body: bodyFont, mono } = PK;
+
+/* =============================================================
+   Marquee — one fat metric per L3 section.
+   This is the "subject-at-a-glance" strip.
+   ============================================================= */
+function Marquee({ items }) {
+  return (
+    <div style={{
+      display: "grid",
+      gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))`,
+      gap: 0,
+      background: "#FFFFFF",
+      boxShadow:
+        "0 1px 2px rgba(14,14,14,0.04), 0 8px 20px -6px rgba(14,14,14,0.08), 0 24px 40px -18px rgba(14,14,14,0.12)",
+      marginBottom: 32,
+    }}>
+      {items.map((m, i) => (
+        <div key={m.label} style={{
+          padding: "26px 28px 28px",
+          borderLeft: i === 0 ? "none" : `1px solid ${hair}`,
+        }}>
+          <Stamp m>{m.section}</Stamp>
+          <div style={{
+            marginTop: 14,
+            fontFamily: display, fontWeight: 500,
+            fontSize: 54, lineHeight: 0.92,
+            letterSpacing: "-0.025em",
+            fontVariantNumeric: "tabular-nums",
+          }}>
+            {m.value}{m.unit && <span style={{ fontSize: 24, marginLeft: 2 }}>{m.unit}</span>}
+          </div>
+          <div style={{
+            marginTop: 12,
+            fontFamily: bodyFont, fontSize: 13.5, color: "#2D2D2D",
+            lineHeight: 1.4,
+          }}>{m.label}</div>
+          <div style={{ marginTop: 14 }}>
+            <PeerBand {...m.peerBand} height={14} />
+          </div>
+          <div style={{ marginTop: 12, display: "flex", justifyContent: "space-between" }}>
+            <Stamp m>vs peer {m.peerStr}</Stamp>
+            <span style={{
+              fontFamily: mono, fontSize: 10,
+              color: m.tier === "Q4" ? "#3D6B3D" :
+                     m.tier === "Q3" ? "#2F5F5B" :
+                     m.tier === "Q2" ? "#7A5A14" : "#8B2F28",
+              fontWeight: 600, letterSpacing: "0.06em",
+            }}>· {m.tier}</span>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* =============================================================
+   SectionCard — one L3 sub-page summary.
+   Three metric rows + Athena snippet + open link.
+   ============================================================= */
+function SectionCard({ stamp, title, question, kpis, athenaLine, href, lifted }) {
+  return (
+    <Paper pad="28px 32px" lifted={lifted}>
+      {/* header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <Stamp m>{stamp}</Stamp>
+        <a href={href} style={{
+          fontFamily: mono, fontSize: 10.5,
+          letterSpacing: "0.14em", textTransform: "uppercase",
+          color: ink, fontWeight: 600,
+          textDecoration: "none",
+          borderBottom: `1px solid ${ink}`,
+          paddingBottom: 1,
+        }}>Open view →</a>
+      </div>
+
+      <h2 style={{
+        fontFamily: display, fontSize: 32, fontWeight: 500,
+        lineHeight: 1.05, letterSpacing: "-0.018em",
+        margin: "12px 0 4px", color: ink,
+      }}>{title}</h2>
+
+      <p style={{
+        fontFamily: bodyFont, fontSize: 14.5, color: mute,
+        margin: 0, lineHeight: 1.5, maxWidth: "40ch",
+      }}>{question}</p>
+
+      <Hair style={{ margin: "22px 0 0" }} />
+
+      {/* KPI rows */}
+      <div>
+        {kpis.map((k, i) => (
+          <div key={k.label} style={{
+            display: "grid",
+            gridTemplateColumns: "1.2fr 80px 1fr",
+            alignItems: "center",
+            gap: 16,
+            padding: "14px 0",
+            borderBottom: i === kpis.length - 1 ? "none" : `1px solid ${hair}`,
+          }}>
+            <div>
+              <div style={{ fontFamily: bodyFont, fontSize: 13.5, color: ink, fontWeight: 500 }}>{k.label}</div>
+              <div style={{
+                marginTop: 4,
+                fontFamily: mono, fontSize: 10, letterSpacing: "0.06em",
+                color: mute,
+              }}>{k.delta}</div>
+            </div>
+            <div style={{
+              fontFamily: display, fontSize: 26, fontWeight: 500,
+              letterSpacing: "-0.015em", lineHeight: 1,
+              fontVariantNumeric: "tabular-nums",
+              textAlign: "right",
+            }}>{k.value}{k.unit && <span style={{ fontSize: 14, marginLeft: 1 }}>{k.unit}</span>}</div>
+            <PeerBand {...k.peerBand} height={14} />
+          </div>
+        ))}
+      </div>
+
+      <Hair />
+
+      {/* Athena footer */}
+      <div style={{
+        marginTop: 18,
+        display: "flex", gap: 14, alignItems: "flex-start",
+      }}>
+        <span style={{
+          fontFamily: display, fontSize: 13, fontWeight: 600,
+          backgroundImage: "var(--fp-hl)", backgroundRepeat: "no-repeat",
+          backgroundSize: "100% 60%", backgroundPosition: "0 65%",
+          padding: "0 5px", flex: "0 0 auto",
+          letterSpacing: "0.02em",
+        }}>Athena</span>
+        <p style={{
+          fontFamily: bodyFont, fontSize: 14, lineHeight: 1.55,
+          margin: 0, color: "#1A1A1A", textWrap: "pretty",
+        }}>{athenaLine}</p>
+      </div>
+    </Paper>
+  );
+}
+
+/* =============================================================
+   Data
+   ============================================================= */
+const MARQUEE = [
+  {
+    section: "Graduation & retention", label: "Six-year graduation",
+    value: "94", unit: "%", peerStr: "p50 86%", tier: "Q4",
+    peerBand: { p25: 80, p50: 86, p75: 90, you: 94, min: 70, max: 100 },
+  },
+  {
+    section: "Outcomes", label: "Median earnings · 10 yrs out",
+    value: "87", unit: "k", peerStr: "p50 $68k", tier: "Q4",
+    peerBand: { p25: 60, p50: 68, p75: 78, you: 87, min: 40, max: 110 },
+  },
+  {
+    section: "Transfers", label: "Transfer graduation rate",
+    value: "89", unit: "%", peerStr: "p50 79%", tier: "Q3",
+    peerBand: { p25: 72, p50: 79, p75: 85, you: 89, min: 55, max: 95 },
+  },
+  {
+    section: "Completions", label: "Awards per FTE student",
+    value: "0.32", unit: "", peerStr: "p50 0.28", tier: "Q3",
+    peerBand: { p25: 0.24, p50: 0.28, p75: 0.31, you: 0.32, min: 0.18, max: 0.40 },
+  },
+];
+
+const SECTIONS = [
+  {
+    stamp: "L3 · Graduation & retention",
+    title: "Finishing what they start.",
+    question: "How many students complete, on what timeline, and where are the cohort gaps?",
+    href: "IPEDS Dashboard.html",
+    kpis: [
+      { label: "Six-year graduation",  value: "94", unit: "%", delta: "+0.6 pp YoY · p50 86%",  peerBand: { p25: 80, p50: 86, p75: 90, you: 94, min: 70, max: 100 } },
+      { label: "First-year retention", value: "98", unit: "%", delta: "+0.2 pp YoY · p50 93%",  peerBand: { p25: 90, p50: 93, p75: 96, you: 98, min: 80, max: 100 } },
+      { label: "URM grad gap",         value: "−1.4", unit: " pp", delta: "−0.8 pp YoY · p50 −5.2 pp", peerBand: { p25: -8, p50: -5, p75: -3, you: -1.4, min: -12, max: 2 } },
+    ],
+    athenaLine: "Six-year rate sits two full points above peer p75, and the URM gap has narrowed from −2.2 pp to −1.4 pp in three years — the gap closure is doing more work than the headline number.",
+  },
+  {
+    stamp: "L3 · Outcomes",
+    title: "What happens after graduation.",
+    question: "Earnings, employment, debt — the long shadow of the degree, measured at 1 / 5 / 10 years.",
+    href: "#",
+    kpis: [
+      { label: "Median earnings · 10y", value: "$87", unit: "k", delta: "+$3.2k YoY · p50 $68k", peerBand: { p25: 60, p50: 68, p75: 78, you: 87, min: 40, max: 110 } },
+      { label: "Employed within 1 yr",  value: "89", unit: "%", delta: "+1.1 pp YoY · p50 84%", peerBand: { p25: 78, p50: 84, p75: 88, you: 89, min: 65, max: 95 } },
+      { label: "Median debt at exit",   value: "$14.2", unit: "k", delta: "−$0.8k YoY · p50 $22k", peerBand: { p25: 18, p50: 22, p75: 28, you: 14.2, min: 10, max: 36 } },
+    ],
+    athenaLine: "Earnings lead the peer set by a full p75 band; debt at exit is sitting at a five-year low and continues to drift down — a quietly improving story.",
+  },
+  {
+    stamp: "L3 · Transfers & mobility",
+    title: "Who moves in, who moves on.",
+    question: "Inbound and outbound transfer volume, and how those students perform once they arrive.",
+    href: "#",
+    kpis: [
+      { label: "Inbound transfers", value: "612",  unit: "",  delta: "+24 YoY · p50 488",      peerBand: { p25: 320, p50: 488, p75: 640, you: 612, min: 200, max: 900 } },
+      { label: "Transfer grad rate", value: "89", unit: "%", delta: "+1.4 pp YoY · p50 79%",  peerBand: { p25: 72, p50: 79, p75: 85, you: 89, min: 55, max: 95 } },
+      { label: "Transfer-out · 6y",  value: "3.1", unit: "%", delta: "−0.3 pp YoY · p50 5.8%", peerBand: { p25: 4, p50: 5.8, p75: 8, you: 3.1, min: 0, max: 14 } },
+    ],
+    athenaLine: "Outbound transfer is the lowest in the peer set, which means first-year retention is absorbing students who'd historically have left. Worth flagging into second-year academic standing.",
+  },
+  {
+    stamp: "L3 · Completions",
+    title: "What's awarded, in what shape.",
+    question: "Degree and certificate output by level and field — where the program mix is moving.",
+    href: "#",
+    kpis: [
+      { label: "Awards per FTE",      value: "0.32", unit: "",  delta: "+0.01 YoY · p50 0.28",  peerBand: { p25: 0.24, p50: 0.28, p75: 0.31, you: 0.32, min: 0.18, max: 0.40 } },
+      { label: "Top-10 program share", value: "64", unit: "%", delta: "+1.2 pp YoY · p50 58%",  peerBand: { p25: 50, p50: 58, p75: 64, you: 64, min: 40, max: 75 } },
+      { label: "STEM award share",     value: "41", unit: "%", delta: "+2.1 pp YoY · p50 32%",  peerBand: { p25: 26, p50: 32, p75: 38, you: 41, min: 18, max: 50 } },
+    ],
+    athenaLine: "Program mix is tilting STEM faster than peers — three CS-adjacent majors are absorbing the shift, while humanities completions held flat year-on-year.",
+  },
+];
+
+/* =============================================================
+   App
+   ============================================================= */
+function App() {
+  const [lenses, setLenses] = useState({ peer: true, diversity: "race", horizon: "5y" });
+
+  return (
+    <div className="pk-sheet" style={{ padding: "8px 56px 56px" }}>
+      <Masthead
+        institution={INST}
+        crumbs={[
+          { label: "IPEDS",   href: "IPEDS.html" },
+          { label: "Success", active: true },
+        ]}
+        levelStamp="L2 · Subject view · 04 sections"
+        question={<>Are students <HL strong>staying</HL>—and finishing?</>}
+        questionMaxCh={14}
+      />
+
+      <LensRow lenses={lenses} setLenses={setLenses} />
+
+      <Marquee items={MARQUEE} />
+
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+        gap: 22,
+      }}>
+        {SECTIONS.map((s, i) => (
+          <SectionCard key={s.title} {...s} lifted={i === 0} />
+        ))}
+      </div>
+
+      <div style={{ marginTop: 28 }}>
+        <AthenaNote chips={["SCOPE · 04 sections","SRC · IPEDS GR/OM/EF","PEER · R1 Private 22","CONF · high"]}>
+          The <HL>Success</HL> picture reads stronger than its headline — the band sits a full peer p75 above the
+          group on three of four sections, and the trailing direction is up on all four. The one shape to watch:
+          completions tilting STEM at a rate that outpaces peers by ~2 pp/yr means the humanities portfolio will
+          need an honest read before the cabinet meeting. Want me to draft a Programs &amp; pipeline read?
+        </AthenaNote>
+      </div>
+
+      <PageFooter
+        left="Superiora · IPEDS · L2 success"
+        right="Stanford · 243744 · drawn 18 may 2026"
+      />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>

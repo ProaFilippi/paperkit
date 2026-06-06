@@ -1,0 +1,717 @@
+<!doctype html>
+<!-- @dsCard group="Brand" name="IPEDS Dashboard (paper-kit)" subtitle="L3 workhorse view — Success → Graduation & retention, BI cards in paper register" -->
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Superiora · IPEDS · Graduation & retention</title>
+<link rel="stylesheet" href="../colors_and_type.css" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" />
+<link rel="stylesheet" href="paper-kit.css" />
+<style>
+  :root {
+    --pk-display: "Space Grotesk", "Inter", system-ui, sans-serif;
+    --pk-body:    "Inter", "Helvetica Neue", system-ui, sans-serif;
+    --pk-mono:    var(--font-mono);
+    --pk-ink:     #0E0E0E;
+    --pk-mute:    #6E6E73;
+    --pk-hair:    rgba(14,14,14,0.10);
+    --pk-hair-strong: rgba(14,14,14,0.18);
+    --pk-desk:    #FAFAF7;
+    --pk-good:    #3D6B3D;
+    --pk-warn:    #7A5A14;
+    --pk-crit:    #8B2F28;
+  }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--pk-desk);
+    background-image: radial-gradient(circle, rgba(14,14,14,0.07) 1px, transparent 1.2px);
+    background-size: 22px 22px;
+    background-position: 0 0;
+    color: var(--pk-ink);
+    font-family: var(--pk-body);
+    -webkit-font-smoothing: antialiased;
+  }
+  #root { min-height: 100vh; }
+  *, *::before, *::after { box-sizing: border-box; }
+
+  /* The floating paper sheet — the dashboard sits inside this */
+  .pk-sheet {
+    background: #FFFFFF;
+    margin: 56px auto 96px;
+    max-width: 1440px;
+    box-shadow:
+      0 1px 2px rgba(14,14,14,0.04),
+      0 18px 36px -10px rgba(14,14,14,0.10),
+      0 56px 96px -32px rgba(14,14,14,0.18);
+  }
+  @media (max-width: 1500px) {
+    .pk-sheet { margin-left: 32px; margin-right: 32px; }
+  }
+</style>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel">
+const { useState, useMemo } = React;
+
+// ========= shared tokens & primitives =========================
+const ink    = "#0E0E0E";
+const mute   = "#6E6E73";
+const hair   = "rgba(14,14,14,0.10)";
+const hairS  = "rgba(14,14,14,0.18)";
+const teal   = "var(--marker-orange)";
+const tealD  = "var(--marker-orange-deep)";
+const display= '"Space Grotesk", "Inter", system-ui, sans-serif';
+const body   = '"Inter", "Helvetica Neue", system-ui, sans-serif';
+const mono   = "var(--font-mono)";
+
+// Paper card — no border, no radius beyond 0, floating shadow stack.
+function Paper({ children, style, lifted, pad="22px 26px" }) {
+  return (
+    <div style={{
+      background: "#FFFFFF",
+      padding: pad,
+      boxShadow: lifted
+        ? "0 1px 2px rgba(14,14,14,0.04), 0 12px 26px -8px rgba(14,14,14,0.10), 0 38px 60px -22px rgba(14,14,14,0.16)"
+        : "0 1px 2px rgba(14,14,14,0.04), 0 8px 20px -6px rgba(14,14,14,0.08), 0 24px 40px -18px rgba(14,14,14,0.12)",
+      ...style,
+    }}>{children}</div>
+  );
+}
+
+const Stamp = ({ children, style, mute: m, l }) => (
+  <span style={{
+    fontFamily: mono,
+    fontSize: l ? 10.5 : 9.5,
+    fontWeight: 500,
+    letterSpacing: "0.16em",
+    textTransform: "uppercase",
+    color: m ? mute : ink,
+    lineHeight: 1,
+    ...style,
+  }}>{children}</span>
+);
+
+const Hair = ({ style }) => (
+  <hr style={{ height: 0, border: 0, borderTop: `1px solid ${hair}`, margin: 0, ...style }} />
+);
+
+// Inline highlighter
+const HL = ({ children, strong, style }) => (
+  <span style={{
+    backgroundImage: strong ? "var(--fp-hl-strong)" : "var(--fp-hl)",
+    backgroundRepeat: "no-repeat",
+    backgroundSize: strong ? "100% 70%" : "100% 65%",
+    backgroundPosition: strong ? "0 70%" : "0 75%",
+    padding: "0 4px",
+    ...style,
+  }}>{children}</span>
+);
+
+// Mono caps tag (white or filled-ink)
+function Tag({ children, filled, style }) {
+  return (
+    <span style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      padding: "4px 9px 4px 8px",
+      border: `1.25px solid ${ink}`,
+      background: filled ? ink : "#FFFFFF",
+      color: filled ? "#FFFFFF" : ink,
+      fontFamily: mono, fontSize: 10.5,
+      letterSpacing: "0.10em", textTransform: "uppercase",
+      lineHeight: 1, cursor: "pointer", userSelect: "none",
+      ...style,
+    }}>{children}</span>
+  );
+}
+
+// Tiny dot — the teal atom
+const Dot = ({ size=9, style }) => (
+  <span style={{
+    display: "inline-block",
+    width: size, height: size, borderRadius: "50%",
+    background: teal, ...style,
+  }} />
+);
+
+// ========= KPI tile (paper register) ==========================
+function KpiTile({ label, value, unit, delta, deltaDir, peer, peerBand, tier, source, footnote }) {
+  // tier maps quartile → severity hint (the only color the tile carries)
+  const tierColor =
+    tier === "Q4" ? "#3D6B3D" :
+    tier === "Q3" ? "#2F5F5B" :
+    tier === "Q2" ? "#7A5A14" :
+    tier === "Q1" ? "#8B2F28" : mute;
+
+  return (
+    <Paper pad="22px 24px">
+      <div style={{
+        display: "flex", justifyContent: "space-between", alignItems: "baseline",
+        marginBottom: 14,
+      }}>
+        <Stamp m>{label}</Stamp>
+        {tier && (
+          <span style={{
+            fontFamily: mono, fontSize: 10, fontWeight: 600,
+            letterSpacing: "0.06em",
+            color: tierColor,
+          }}>· {tier}</span>
+        )}
+      </div>
+      <div style={{
+        fontFamily: display, fontWeight: 500,
+        fontSize: 52, lineHeight: 0.92,
+        letterSpacing: "-0.025em",
+        fontVariantNumeric: "tabular-nums",
+        color: ink,
+      }}>
+        {value}{unit && (
+          <span style={{ fontSize: 26, fontWeight: 500, marginLeft: 2 }}>{unit}</span>
+        )}
+      </div>
+      <div style={{ marginTop: 12, display: "flex", alignItems: "baseline", gap: 8 }}>
+        {delta && (
+          <span style={{ fontFamily: mono, fontSize: 11, letterSpacing: "0.06em", color: ink }}>
+            <HL>{delta}</HL>
+          </span>
+        )}
+        {peer && (
+          <span style={{ fontFamily: mono, fontSize: 11, color: mute, letterSpacing: "0.04em" }}>
+            · vs peer {peer}
+          </span>
+        )}
+      </div>
+      {peerBand && <PeerBand {...peerBand} />}
+      <Hair style={{ marginTop: 14 }} />
+      <div style={{
+        display: "flex", justifyContent: "space-between", marginTop: 10,
+      }}>
+        <Stamp m>{source}</Stamp>
+        <Stamp m>{footnote}</Stamp>
+      </div>
+    </Paper>
+  );
+}
+
+// Peer band visualization — single line with p25/median/p75 ticks + you marker
+function PeerBand({ p25, p50, p75, you, min=0, max=100 }) {
+  const pct = v => `${((v - min) / (max - min)) * 100}%`;
+  return (
+    <div style={{ marginTop: 14, position: "relative", height: 18 }}>
+      {/* baseline */}
+      <div style={{
+        position: "absolute", left: 0, right: 0, top: 9,
+        height: 1, background: hair,
+      }} />
+      {/* p25–p75 band */}
+      <div style={{
+        position: "absolute", left: pct(p25), width: `calc(${pct(p75)} - ${pct(p25)})`,
+        top: 6, height: 7,
+        background: "rgba(14,14,14,0.07)",
+      }} />
+      {/* median tick */}
+      <div style={{
+        position: "absolute", left: pct(p50), top: 4, width: 1, height: 11,
+        background: hairS,
+      }} />
+      {/* you */}
+      <div style={{
+        position: "absolute", left: `calc(${pct(you)} - 6px)`, top: 1,
+        width: 12, height: 12, borderRadius: "50%",
+        background: teal,
+        boxShadow: "0 0 0 2px #FFFFFF, 0 0 0 3px rgba(14,14,14,0.10)",
+      }} />
+    </div>
+  );
+}
+
+// ========= Trend Band chart (paper register) ==================
+function TrendBand({ title, sub, labels, you, peer, yMin=60, yMax=100, yUnit="%" }) {
+  const w = 540, h = 200;
+  const top = 16, bot = 32, lft = 36, rgt = 12;
+  const iw = w - lft - rgt, ih = h - top - bot;
+  const xAt = i => lft + (iw * i) / (you.length - 1);
+  const yAt = v => top + ih - ((v - yMin) / (yMax - yMin)) * ih;
+
+  const bandUp = peer.map((p, i) => `${i === 0 ? "M" : "L"} ${xAt(i)} ${yAt(p[1])}`).join(" ");
+  const bandDn = peer.slice().reverse().map((p, i) => `L ${xAt(peer.length - 1 - i)} ${yAt(p[0])}`).join(" ");
+  const bandPath = `${bandUp} ${bandDn} Z`;
+
+  const ticks = [];
+  for (let i = 0; i <= 4; i++) ticks.push(yMin + ((yMax - yMin) * i) / 4);
+
+  return (
+    <Paper pad="22px 26px">
+      <div style={{
+        display: "flex", justifyContent: "space-between", alignItems: "baseline",
+        marginBottom: 16,
+      }}>
+        <div>
+          <Stamp m style={{ marginBottom: 6, display: "block" }}>{sub}</Stamp>
+          <div style={{ fontFamily: display, fontSize: 22, fontWeight: 500, letterSpacing: "-0.012em", color: ink }}>{title}</div>
+        </div>
+        <div style={{ display: "flex", gap: 18 }}>
+          <Legend swatch={<span style={{ width: 18, height: 8, background: "rgba(74,133,128,0.20)", display: "inline-block" }} />} label="Peer 25-75th" />
+          <Legend swatch={<span style={{ width: 18, height: 2, background: ink, display: "inline-block" }} />} label="Stanford" />
+        </div>
+      </div>
+      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 200, display: "block" }}>
+        {ticks.map((t, i) => (
+          <line key={i} x1={lft} x2={w - rgt}
+            y1={top + (ih * (4 - i)) / 4} y2={top + (ih * (4 - i)) / 4}
+            stroke={hair} strokeDasharray="2 5" />
+        ))}
+        {ticks.map((t, i) => (
+          <text key={i} x={lft - 8} y={top + (ih * (4 - i)) / 4 + 3}
+            fontFamily="JetBrains Mono" fontSize="9.5"
+            fill={mute} textAnchor="end">{Math.round(t)}{yUnit}</text>
+        ))}
+        <path d={bandPath} fill="rgba(74,133,128,0.16)" stroke="rgba(74,133,128,0.32)" strokeWidth="0.75" />
+        <polyline fill="none" stroke={ink} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"
+          points={you.map((v, i) => `${xAt(i)},${yAt(v)}`).join(" ")} />
+        {you.map((v, i) => (
+          <circle key={i} cx={xAt(i)} cy={yAt(v)} r="2.25" fill={ink} />
+        ))}
+        <circle cx={xAt(you.length - 1)} cy={yAt(you[you.length - 1])}
+          r="6" fill="var(--marker-orange)" stroke="#FFFFFF" strokeWidth="2" />
+        {labels.map((l, i) => (
+          <text key={i} x={xAt(i)} y={h - 10}
+            fontFamily="JetBrains Mono" fontSize="9.5"
+            fill={mute} textAnchor="middle">{l}</text>
+        ))}
+      </svg>
+    </Paper>
+  );
+}
+const Legend = ({ swatch, label }) => (
+  <span style={{
+    display: "inline-flex", alignItems: "center", gap: 8,
+    fontFamily: mono, fontSize: 10, color: mute,
+    letterSpacing: "0.08em", textTransform: "uppercase",
+  }}>
+    {swatch}
+    <span>{label}</span>
+  </span>
+);
+
+// ========= Distribution (peer histogram, you marked) ==========
+function Distribution({ title, sub, bars, youIdx, youLabel, xRange }) {
+  const max = Math.max(...bars);
+  const w = 540, h = 200;
+  const bw = 24, gap = 6;
+  const totalW = bars.length * bw + (bars.length - 1) * gap;
+  const startX = (w - totalW) / 2;
+  return (
+    <Paper pad="22px 26px">
+      <div style={{ marginBottom: 14, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <div>
+          <Stamp m style={{ marginBottom: 6, display: "block" }}>{sub}</Stamp>
+          <div style={{ fontFamily: display, fontSize: 22, fontWeight: 500, letterSpacing: "-0.012em", color: ink }}>{title}</div>
+        </div>
+        <span style={{ fontFamily: mono, fontSize: 11, color: ink, letterSpacing: "0.04em" }}>
+          <HL>{youLabel}</HL>
+        </span>
+      </div>
+      <svg viewBox={`0 0 ${w} ${h}`} style={{ width: "100%", height: 200, display: "block" }}>
+        {bars.map((v, i) => {
+          const x = startX + i * (bw + gap);
+          const isYou = i === youIdx;
+          const barH = (v / max) * 140;
+          return (
+            <g key={i}>
+              <rect x={x} y={170 - barH} width={bw} height={barH}
+                fill={isYou ? "var(--marker-orange)" : "rgba(14,14,14,0.16)"} />
+              {isYou && (
+                <>
+                  <line x1={x + bw / 2} y1={170 - barH - 4} x2={x + bw / 2} y2={170 - barH - 14}
+                    stroke={ink} strokeWidth="1" />
+                  <circle cx={x + bw / 2} cy={170 - barH - 18} r="3" fill={ink} />
+                </>
+              )}
+            </g>
+          );
+        })}
+        <line x1={startX - 4} x2={startX + totalW + 4} y1={170} y2={170} stroke={hairS} />
+        <text x={startX} y={188} fontFamily="JetBrains Mono" fontSize="9.5" fill={mute}>{xRange[0]}</text>
+        <text x={startX + totalW} y={188} fontFamily="JetBrains Mono" fontSize="9.5" fill={mute} textAnchor="end">{xRange[1]}</text>
+      </svg>
+    </Paper>
+  );
+}
+
+// ========= Peer Rank rail ====================================
+function PeerRankRail({ metric, rows }) {
+  // rows: [{rank, name, value, you}]
+  return (
+    <Paper pad="22px 24px" style={{ position: "sticky", top: 24 }}>
+      <Stamp m>Peer rank · {metric}</Stamp>
+      <div style={{
+        marginTop: 8,
+        fontFamily: display, fontSize: 20, fontWeight: 500, letterSpacing: "-0.012em",
+        color: ink, lineHeight: 1.2,
+      }}>
+        R1 Private · 22 institutions
+      </div>
+      <Hair style={{ margin: "16px 0 4px" }} />
+      <div>
+        {rows.map((r, i) => (
+          <div key={r.rank} style={{
+            display: "grid",
+            gridTemplateColumns: "28px 1fr 56px",
+            alignItems: "center",
+            padding: "10px 0",
+            borderTop: i === 0 ? "none" : `1px solid ${hair}`,
+            background: r.you ? "linear-gradient(90deg, rgba(74,133,128,0.10), rgba(74,133,128,0) 70%)" : "transparent",
+            marginLeft: r.you ? -8 : 0, marginRight: r.you ? -8 : 0,
+            paddingLeft: r.you ? 8 : 0, paddingRight: r.you ? 8 : 0,
+          }}>
+            <span style={{
+              fontFamily: mono, fontSize: 10.5, color: r.you ? ink : mute,
+              fontWeight: r.you ? 600 : 500,
+              letterSpacing: "0.04em",
+            }}>{String(r.rank).padStart(2,"0")}</span>
+            <span style={{
+              fontFamily: body, fontSize: 13.5, color: ink,
+              fontWeight: r.you ? 600 : 400,
+              whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis",
+              display: "inline-flex", alignItems: "center", gap: 7,
+            }}>
+              {r.you && <Dot size={7} />}
+              {r.name}
+            </span>
+            <span style={{
+              fontFamily: mono, fontSize: 11.5, color: ink,
+              fontWeight: r.you ? 600 : 500,
+              textAlign: "right",
+              fontVariantNumeric: "tabular-nums",
+            }}>{r.value}</span>
+          </div>
+        ))}
+      </div>
+      <Hair style={{ marginTop: 6 }} />
+      <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10 }}>
+        <Stamp m>Showing 8 of 22</Stamp>
+        <span style={{ fontFamily: mono, fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: ink, cursor: "pointer", borderBottom: `1px solid ${ink}` }}>
+          See all →
+        </span>
+      </div>
+    </Paper>
+  );
+}
+
+// ========= Athena margin note ================================
+function AthenaNote({ children, chips }) {
+  return (
+    <Paper pad="26px 32px">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <span style={{
+          fontFamily: display, fontSize: 17, fontWeight: 600,
+          backgroundImage: "var(--fp-hl)", backgroundRepeat: "no-repeat",
+          backgroundSize: "100% 60%", backgroundPosition: "0 65%",
+          padding: "0 6px",
+        }}>Athena</span>
+        <Stamp m>Margin note · 09:14</Stamp>
+      </div>
+      <Hair style={{ margin: "14px 0" }} />
+      <p style={{
+        fontFamily: body, fontSize: 16, lineHeight: 1.6, margin: 0, color: "#1A1A1A",
+        textWrap: "pretty",
+      }}>{children}</p>
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 16 }}>
+        {chips.map((c, i) => <Tag key={i}>{c}</Tag>)}
+      </div>
+    </Paper>
+  );
+}
+
+// ========= Lens pills row ====================================
+function LensRow({ lenses, setLenses }) {
+  return (
+    <div style={{
+      display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap",
+      paddingBottom: 18, marginBottom: 24, borderBottom: `1px solid ${hair}`,
+    }}>
+      <Stamp m style={{ marginRight: 6 }}>Lenses</Stamp>
+      <Pill active={lenses.peer} onClick={() => setLenses(l => ({ ...l, peer: !l.peer }))}>
+        Peer comparison · R1 Private
+      </Pill>
+      <Pill active={lenses.diversity !== "none"} onClick={() => {
+        const order = ["none","race","gender","pell"];
+        const next = order[(order.indexOf(lenses.diversity) + 1) % order.length];
+        setLenses(l => ({ ...l, diversity: next }));
+      }}>
+        Split by · {lenses.diversity === "none" ? "off" : lenses.diversity}
+      </Pill>
+      <Pill active onClick={() => {
+        const order = ["3y","5y","10y"];
+        setLenses(l => ({ ...l, horizon: order[(order.indexOf(l.horizon) + 1) % order.length] }));
+      }}>
+        Horizon · {lenses.horizon}
+      </Pill>
+      <span style={{ flex: 1 }} />
+      <Stamp m>IPEDS · 2018-2024</Stamp>
+      <span style={{ width: 14, height: 1, background: hair }} />
+      <Stamp m>Refreshed 11 min ago</Stamp>
+    </div>
+  );
+}
+function Pill({ active, onClick, children }) {
+  return (
+    <button onClick={onClick} style={{
+      display: "inline-flex", alignItems: "center", gap: 6,
+      padding: "6px 12px",
+      fontFamily: mono, fontSize: 10.5,
+      letterSpacing: "0.10em", textTransform: "uppercase",
+      lineHeight: 1, cursor: "pointer",
+      border: `1.25px solid ${ink}`,
+      background: active ? ink : "#FFFFFF",
+      color: active ? "#FFFFFF" : ink,
+    }}>
+      {active && <Dot size={6} style={{ background: teal }} />}
+      {children}
+    </button>
+  );
+}
+
+// ========= In-paper context selectors ========================
+function ContextCell({ label, value, meta }) {
+  const [hover, setHover] = useState(false);
+  return (
+    <div style={{ textAlign: "right", minWidth: 140 }}>
+      <span style={{
+        fontFamily: mono, fontSize: 9.5,
+        letterSpacing: "0.16em", textTransform: "uppercase",
+        color: mute, display: "block", marginBottom: 6,
+      }}>{label}</span>
+      <button
+        type="button"
+        aria-haspopup="listbox"
+        onMouseEnter={() => setHover(true)}
+        onMouseLeave={() => setHover(false)}
+        style={{
+          display: "inline-flex", alignItems: "center", gap: 10,
+          padding: "4px 0",
+          background: "transparent", border: 0, cursor: "pointer",
+          color: ink,
+          fontFamily: display, fontSize: 17, fontWeight: 500,
+          letterSpacing: "-0.01em",
+          whiteSpace: "nowrap",
+          borderBottom: `1.25px solid ${hover ? ink : "transparent"}`,
+          transition: "border-color 120ms ease",
+        }}
+      >
+        {value}
+        {meta && (
+          <span style={{
+            color: mute, fontFamily: mono, fontSize: 10.5,
+            fontWeight: 400, letterSpacing: "0.06em",
+          }}>{meta}</span>
+        )}
+        <span style={{ color: mute, fontFamily: mono, fontSize: 11, fontWeight: 400 }}>▾</span>
+      </button>
+    </div>
+  );
+}
+function ContextSelectors({ institution, peerGroup }) {
+  return (
+    <div style={{ display: "flex", gap: 32, alignItems: "flex-start", paddingTop: 4 }}>
+      <ContextCell label="Institution" value={institution.name} />
+      <ContextCell label="Peer group" value={peerGroup.name} meta={`\u00b7 ${peerGroup.count} inst.`} />
+    </div>
+  );
+}
+
+// ========= Breadcrumb + identity strip =======================
+function Masthead({ institution }) {
+  return (
+    <header style={{
+      padding: "40px 0 28px",
+    }}>
+      {/* breadcrumb */}
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 24 }}>
+        {[
+          { label: "IPEDS",                   href: "IPEDS.html" },
+          { label: "Success",                 href: "Success.html" },
+          { label: "Graduation & retention",  active: true },
+        ].map((c, i) => (
+          <React.Fragment key={c.label}>
+            {i > 0 && <span style={{ color: mute, fontFamily: mono, fontSize: 11 }}>/</span>}
+            {c.href ? (
+              <a href={c.href} style={{
+                fontFamily: mono, fontSize: 11, letterSpacing: "0.14em",
+                textTransform: "uppercase", fontWeight: 500,
+                color: mute, textDecoration: "none",
+                transition: "color 120ms",
+              }}
+                onMouseEnter={e => e.currentTarget.style.color = ink}
+                onMouseLeave={e => e.currentTarget.style.color = mute}
+              >{c.label}</a>
+            ) : (
+              <span style={{
+                fontFamily: mono, fontSize: 11, letterSpacing: "0.14em",
+                textTransform: "uppercase", fontWeight: c.active ? 600 : 500,
+                color: c.active ? ink : mute,
+                borderBottom: c.active ? `1px solid ${ink}` : "none",
+                paddingBottom: c.active ? 2 : 0,
+              }}>{c.label}</span>
+            )}
+          </React.Fragment>
+        ))}
+        <span style={{ flex: 1 }} />
+        <Stamp m>Drawn by · Athena</Stamp>
+      </div>
+
+      {/* the question + context selectors (top-right) */}
+      <div style={{ display: "grid", gridTemplateColumns: "1.4fr auto", gap: 48, alignItems: "flex-start" }}>
+        <div>
+          <Stamp m style={{ marginBottom: 14, display: "block" }}>L3 · Workhorse view · 06 KPIs</Stamp>
+          <h1 style={{
+            fontFamily: display, fontWeight: 500,
+            fontSize: 72, lineHeight: 0.92,
+            letterSpacing: "-0.025em",
+            margin: 0,
+            color: ink,
+            maxWidth: "16ch",
+          }}>
+            Are students <HL strong>finishing</HL> what they start?
+          </h1>
+        </div>
+        <ContextSelectors institution={institution} peerGroup={PEER_GROUP} />
+      </div>
+    </header>
+  );
+}
+
+// ========= Data ==============================================
+const INST = {
+  name: "Stanford University",
+  carnegie: "R1 · Doctoral",
+  sector: "Private · Non-profit",
+  ipeds: "243744",
+  headcount: "17,529",
+};
+
+const PEER_GROUP = { name: "R1 Private", count: 22 };
+
+const KPIS = [
+  { label: "Six-year graduation", value: "94", unit: "%", delta: "+0.6 pp YoY", peer: "p50 86%", peerBand: { p25: 80, p50: 86, p75: 90, you: 94, min: 70, max: 100 }, tier: "Q4", source: "IPEDS GR · 2024", footnote: "Coverage 100%" },
+  { label: "Four-year graduation", value: "82", unit: "%", delta: "+1.4 pp YoY", peer: "p50 71%", peerBand: { p25: 64, p50: 71, p75: 78, you: 82, min: 50, max: 90 }, tier: "Q4", source: "IPEDS GR · 2024", footnote: "Coverage 100%" },
+  { label: "First-year retention", value: "98", unit: "%", delta: "+0.2 pp YoY", peer: "p50 93%", peerBand: { p25: 90, p50: 93, p75: 96, you: 98, min: 80, max: 100 }, tier: "Q4", source: "IPEDS EF · 2024", footnote: "Coverage 100%" },
+  { label: "Pell grad rate · 6y", value: "92", unit: "%", delta: "+1.1 pp YoY", peer: "p50 78%", peerBand: { p25: 70, p50: 78, p75: 84, you: 92, min: 55, max: 100 }, tier: "Q4", source: "IPEDS OM · 2024", footnote: "Coverage 96%" },
+  { label: "URM grad gap", value: "−1.4", unit: " pp", delta: "−0.8 pp YoY", peer: "p50 −5.2 pp", peerBand: { p25: -8, p50: -5, p75: -3, you: -1.4, min: -12, max: 2 }, tier: "Q4", source: "IPEDS OM · 2024", footnote: "Coverage 96%" },
+  { label: "Transfer-out · 6y", value: "3.1", unit: "%", delta: "−0.3 pp YoY", peer: "p50 5.8%", peerBand: { p25: 4, p50: 5.8, p75: 8, you: 3.1, min: 0, max: 14 }, tier: "Q4", source: "IPEDS GR · 2024", footnote: "Coverage 100%" },
+];
+
+const TREND_LABELS = ["2018","2019","2020","2021","2022","2023","2024"];
+const TREND_YOU = [92.1, 92.8, 93.0, 93.3, 93.4, 93.6, 94.0];
+const TREND_PEER = [
+  [82, 89],[83, 89.5],[83.5, 90],[84, 90.2],[84.5, 90.5],[85, 90.8],[85.5, 91]
+];
+
+const DIST_BARS = [1, 2, 3, 4, 6, 7, 5, 3, 2, 1];     // peers grouped by grad-rate bin
+const DIST_YOU_IDX = 9;                                // far right bin (94%)
+
+const PEER_RANK = [
+  { rank: 1, name: "Princeton",      value: "97.4%" },
+  { rank: 2, name: "Harvard",        value: "96.8%" },
+  { rank: 3, name: "Yale",           value: "96.0%" },
+  { rank: 4, name: "Brown",          value: "95.1%" },
+  { rank: 5, name: "Stanford",       value: "94.0%", you: true },
+  { rank: 6, name: "Penn",           value: "93.8%" },
+  { rank: 7, name: "Duke",           value: "93.5%" },
+  { rank: 8, name: "Dartmouth",      value: "93.2%" },
+];
+
+// ========= App ===============================================
+function App() {
+  const [lenses, setLenses] = useState({ peer: true, diversity: "race", horizon: "5y" });
+
+  return (
+    <div className="pk-sheet" style={{ padding: "8px 56px 56px" }}>
+      <Masthead institution={INST} />
+
+      <LensRow lenses={lenses} setLenses={setLenses} />
+
+      {/* Workhorse grid: KPIs (3-up, 2 rows) + peer rail right */}
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) 340px",
+        gap: 28,
+      }}>
+        {/* main column */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 22 }}>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, minmax(0,1fr))",
+            gap: 18,
+          }}>
+            {KPIS.map(k => <KpiTile key={k.label} {...k} />)}
+          </div>
+
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1.4fr 1fr",
+            gap: 18,
+          }}>
+            <TrendBand
+              title="Six-year graduation, 2018–2024"
+              sub="Trend · institution vs peer 25–75th percentile"
+              labels={TREND_LABELS}
+              you={TREND_YOU}
+              peer={TREND_PEER}
+              yMin={70}
+              yMax={100}
+            />
+            <Distribution
+              title="Peer distribution · 2024"
+              sub="22 R1 Private institutions · 2 pp bins"
+              bars={DIST_BARS}
+              youIdx={DIST_YOU_IDX}
+              youLabel="You · 94%"
+              xRange={["76%","96%"]}
+            />
+          </div>
+
+          <AthenaNote chips={["SRC · IPEDS GR 2024","PEER · R1 Private 22","COVERAGE · 100%","CONF · high"]}>
+            The six-year rate is <HL>quietly stronger than it reads</HL>. Stanford's
+            band sits two full points above the peer p75 and the URM gap has
+            narrowed from −2.2 pp to −1.4 pp in three years — that gap closure
+            is doing more work than the headline number. The one shape to
+            watch: transfer-out is still falling, which means retention is
+            absorbing students who would historically have left. Worth a
+            section on second-year academic standing before the cabinet read.
+          </AthenaNote>
+        </div>
+
+        {/* right rail */}
+        <div>
+          <PeerRankRail metric="Six-year graduation" rows={PEER_RANK} />
+        </div>
+      </div>
+
+      {/* footer */}
+      <div style={{
+        marginTop: 56, paddingTop: 18,
+        borderTop: `1px solid ${hair}`,
+        display: "flex", justifyContent: "space-between",
+        fontFamily: mono, fontSize: 10.5,
+        letterSpacing: "0.14em", textTransform: "uppercase", color: mute,
+      }}>
+        <span>Superiora · IPEDS · L3 graduation &amp; retention</span>
+        <span>Stanford · 243744 · drawn 18 may 2026</span>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
